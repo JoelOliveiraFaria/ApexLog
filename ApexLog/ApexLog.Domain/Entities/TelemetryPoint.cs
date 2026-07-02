@@ -15,6 +15,8 @@ namespace ApexLog.Domain.Entities
         public double ThrottlePosition { get; private set; }
         public double EngineTempC { get; private set; }
 
+        protected TelemetryPoint() { }
+
         public TelemetryPoint (DateTime timestamp, int rpm, int speedkmh, double throttleposition, double enginetempc)
         {
             Id = Guid.NewGuid ();

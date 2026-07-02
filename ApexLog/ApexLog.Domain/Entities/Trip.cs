@@ -17,6 +17,8 @@ namespace ApexLog.Domain.Entities
         private readonly List<TelemetryPoint> _telemetryPoints = new();
         public IReadOnlyCollection<TelemetryPoint> TelemetryPoints => _telemetryPoints.AsReadOnly();
 
+        protected Trip() { }
+
         public Trip(string motoid, DateTime startTime) 
         { 
             Id = Guid.NewGuid();

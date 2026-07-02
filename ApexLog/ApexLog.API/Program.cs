@@ -1,7 +1,23 @@
+using ApexLog.Application.Interfaces;
+using ApexLog.Application.Services;
+using ApexLog.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using ApexLog.Infrastructure.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// --- CONFIGURAÇÃO DA INFRAESTRUTURA E DOMÍNIO ---
+// 1. Configurar o DbContext com PostgreSQL (Lê o appsettings/secrets)
+var connectionString = builder.Configuration.GetConnectionString("PostgresConnection");
+builder.Services.AddDbContext<ApexLogDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
+// 2. Registar os componentes da Clean Architecture (Injeção de Dependência)
+builder.Services.AddScoped<ITripRepository, TripRepository>();
+builder.Services.AddScoped<UploadTelemetryService>();
+// ------------------------------------------------
+
+// Add services to the container.
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
