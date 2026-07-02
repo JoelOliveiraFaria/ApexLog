@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ApexLog.Domain\ApexLog.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
