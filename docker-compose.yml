@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  apexlog-db:
+    image: postgres:16-alpine
+    container_name: apexlog-db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - apexlog-network
+
+volumes:
+  pgdata:
+
+networks:
+  apexlog-network:
+    driver: bridge

@@ -7,6 +7,20 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/Dotnet.gitignore
 
+# Ignorar cache do Visual Studio em qualquer pasta
+.vs/
+**/.vs/
+
+# Ignorar configurações personalizadas de utilizador
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Garante que bin e obj também são ignorados em subpastas
+[Bb]in/
+[Oo]bj/
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
