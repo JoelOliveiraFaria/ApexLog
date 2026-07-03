@@ -11,5 +11,6 @@ namespace ApexLog.Application.Interfaces
     {
         Task SaveAsync(Trip trip);
         Task<Trip?> GetByIdAsync(Guid id);
+        Task<IReadOnlyList<Trip>> GetAllAsync();
     }
 }

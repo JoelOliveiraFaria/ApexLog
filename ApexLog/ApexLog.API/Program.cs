@@ -15,6 +15,7 @@ builder.Services.AddDbContext<ApexLogDbContext>(options =>
 // 2. Registar os componentes da Clean Architecture (Injeção de Dependência)
 builder.Services.AddScoped<ITripRepository, TripRepository>();
 builder.Services.AddScoped<UploadTelemetryService>();
+builder.Services.AddScoped<TripQueryService>();
 // ------------------------------------------------
 
 // Add services to the container.

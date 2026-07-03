@@ -25,6 +25,13 @@ namespace ApexLog.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task<IReadOnlyList<Trip>> GetAllAsync()
+        {
+            return await _context.Trips
+                .OrderByDescending(t => t.StartTime)
+                .ToListAsync();
+        }
+
         public async Task<Trip?> GetByIdAsync(Guid id)
         {
             return await _context.Trips

@@ -14,6 +14,12 @@ namespace ApexLog.Domain.Entities
         public DateTime EndTime { get; private set; }
         public double DistanceKm { get; private set; }
 
+        //Propriedades Calculadas
+        public int MaxSpeedKmh { get; private set; }
+        public double AvgSpeedKmh { get; private set; }
+        public int MaxRpm { get; private set; }
+        //--------------------------------------
+
         private readonly List<TelemetryPoint> _telemetryPoints = new();
         public IReadOnlyCollection<TelemetryPoint> TelemetryPoints => _telemetryPoints.AsReadOnly();
 
@@ -34,6 +40,13 @@ namespace ApexLog.Domain.Entities
             }
             EndTime = endTime;
             DistanceKm = distanceKm;
+
+            if(_telemetryPoints.Any())
+            {
+                MaxSpeedKmh = _telemetryPoints.Max(p => p.SpeedKmh);
+                MaxRpm = _telemetryPoints.Max(p => p.Rpm);
+                AvgSpeedKmh = Math.Round(_telemetryPoints.Average(p => p.SpeedKmh), 1);
+            }
         }
 
         public void AddTelemetryPoints(TelemetryPoint point)
