@@ -59,5 +59,59 @@ namespace ApexLog.API.Controllers
 
             return Ok(trip);
         }
+
+        // 3. Iniciar Viagem em streaming (POST /api/trips/start)
+        [HttpPost("start")]
+        public async Task<ActionResult<StartTripResponseDto>> StartTrip([FromBody] StartTripDto request)
+        {
+            try
+            {
+                var tripId = await _uploadService.StartTripAsync(request.MotoId, request.StartTime);
+                return Ok(new StartTripResponseDto(tripId));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        // 4. Inserção em lote de telemetria numa viagem em curso (POST /api/trips/{id}/telemetry)
+        [HttpPost("{id:guid}/telemetry")]
+        public async Task<IActionResult> UploadTelemetryBatch(Guid id, [FromBody] TelemetryBatchDto request)
+        {
+            if (request.Points == null || request.Points.Count == 0)
+            {
+                return BadRequest(new { error = "O lote não contém pontos de telemetria." });
+            }
+
+            try
+            {
+                await _uploadService.AppendTelemetryBatchAsync(id, request.Points);
+                return Ok(new { message = $"{request.Points.Count} pontos gravados com sucesso.", tripId = id });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+        }
+
+        // 5. Finalizar viagem e calcular métricas agregadas (POST /api/trips/{id}/finish)
+        [HttpPost("{id:guid}/finish")]
+        public async Task<IActionResult> FinishTrip(Guid id, [FromBody] FinishTripDto request)
+        {
+            try
+            {
+                await _uploadService.FinishTripAsync(id, request.EndTime, request.DistanceKm);
+                return Ok(new { message = "Viagem finalizada e métricas agregadas calculadas." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }

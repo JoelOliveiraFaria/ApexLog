@@ -1,17 +1,33 @@
-import { useEffect, useState } from 'react';
-import { type Trip } from '../types';
+import { useEffect, useMemo, useState } from 'react';
+import { type Trip, type TelemetryPoint } from '../types';
 import { ArrowLeft, RefreshCw, AlertTriangle, Gauge, Thermometer, Zap } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { TelemetryStatTile } from './TelemetryStatTile';
+import { downsampleLTTB } from '../utils/downsample';
 
 interface TripDetailsProps {
   tripId: string;
   onBack: () => void;
 }
 
+interface ChartRow extends TelemetryPoint {
+  timeDisplay: string;
+}
+
+interface RechartsHoverState {
+  isTooltipActive?: boolean;
+  activePayload?: Array<{ payload: ChartRow }>;
+}
+
+// Acima deste número de pontos o Recharts começa a perder fluidez a renderizar/interagir
+const DOWNSAMPLE_THRESHOLD = 500;
+
 export function TripDetails({ tripId, onBack }: TripDetailsProps) {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [perfHover, setPerfHover] = useState<ChartRow | null>(null);
+  const [engineHover, setEngineHover] = useState<ChartRow | null>(null);
 
   useEffect(() => {
     const fetchTripDetails = async () => {
@@ -28,6 +44,26 @@ export function TripDetails({ tripId, onBack }: TripDetailsProps) {
     };
     fetchTripDetails();
   }, [tripId]);
+
+  // Tratamento do tempo para o eixo X do gráfico (ex: transformar timestamps em segundos relativos de viagem)
+  const chartData = useMemo<ChartRow[]>(
+    () =>
+      trip?.telemetryPoints?.map((p, index) => ({
+        ...p,
+        timeDisplay: `${index}s`,
+      })) ?? [],
+    [trip]
+  );
+
+  // Downsampling para manter os gráficos fluidos em viagens longas, preservando os picos (LTTB)
+  const sampledData = useMemo(
+    () => downsampleLTTB(chartData, DOWNSAMPLE_THRESHOLD, 'speedKmh'),
+    [chartData]
+  );
+
+  const lastPoint = sampledData.length > 0 ? sampledData[sampledData.length - 1] : null;
+  const perfDisplay = perfHover ?? lastPoint;
+  const engineDisplay = engineHover ?? lastPoint;
 
   if (loading) {
     return (
@@ -50,16 +86,10 @@ export function TripDetails({ tripId, onBack }: TripDetailsProps) {
     );
   }
 
-  // Tratamento do tempo para o eixo X do gráfico (ex: transformar timestamps em segundos relativos de viagem)
-  const chartData = trip.telemetryPoints?.map((p, index) => ({
-    ...p,
-    timeDisplay: `${index}s`, // Representação simples por segundo de registo
-  })) || [];
-
   return (
     <div className="space-y-8">
       {/* Botão Voltar */}
-      <button 
+      <button
         onClick={onBack}
         className="flex items-center gap-2 text-slate-400 hover:text-white font-medium transition-colors cursor-pointer group"
       >
@@ -108,20 +138,35 @@ export function TripDetails({ tripId, onBack }: TripDetailsProps) {
         <div className="space-y-8">
           {/* Gráfico 1: Performance Dinâmica */}
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
-            <h3 className="text-lg font-bold text-white mb-6">Gráfico de Performance (Velocidade & RPM)</h3>
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+              <h3 className="text-lg font-bold text-white">Gráfico de Performance (Velocidade & RPM)</h3>
+              <div className="flex gap-3">
+                <TelemetryStatTile label="Velocidade" value={perfDisplay?.speedKmh ?? '--'} unit="km/h" dotClassName="bg-emerald-400" />
+                <TelemetryStatTile label="Rotações" value={perfDisplay?.rpm ?? '--'} unit="rpm" dotClassName="bg-orange-400" />
+              </div>
+            </div>
             <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <LineChart
+                  data={sampledData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  onMouseMove={(state: RechartsHoverState) => {
+                    if (state?.isTooltipActive && state.activePayload?.length) {
+                      setPerfHover(state.activePayload[0].payload);
+                    }
+                  }}
+                  onMouseLeave={() => setPerfHover(null)}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                   <XAxis dataKey="timeDisplay" stroke="#64748b" fontSize={12} />
-                  
+
                   {/* Dois eixos Y independentes para não esmagar as curvas */}
                   <YAxis yAxisId="left" stroke="#10b981" fontSize={12} label={{ value: 'km/h', angle: -90, position: 'insideLeft', fill: '#10b981' }} />
                   <YAxis yAxisId="right" orientation="right" stroke="#f97316" fontSize={12} label={{ value: 'RPM', angle: 90, position: 'insideRight', fill: '#f97316' }} />
-                  
+
                   <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }} />
                   <Legend />
-                  
+
                   <Line yAxisId="left" type="monotone" dataKey="speedKmh" stroke="#10b981" strokeWidth={3} name="Velocidade" dot={false} activeDot={{ r: 6 }} />
                   <Line yAxisId="right" type="monotone" dataKey="rpm" stroke="#f97316" strokeWidth={2} name="Rotações (RPM)" dot={false} />
                 </LineChart>
@@ -131,19 +176,34 @@ export function TripDetails({ tripId, onBack }: TripDetailsProps) {
 
           {/* Gráfico 2: Saúde do Motor & Aceleração */}
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
-            <h3 className="text-lg font-bold text-white mb-6">Diagnóstico do Motor (Temperatura & Acelerador)</h3>
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+              <h3 className="text-lg font-bold text-white">Diagnóstico do Motor (Temperatura & Acelerador)</h3>
+              <div className="flex gap-3">
+                <TelemetryStatTile label="Temp. motor" value={engineDisplay?.engineTempC ?? '--'} unit="ºC" dotClassName="bg-red-400" />
+                <TelemetryStatTile label="Acelerador" value={engineDisplay?.throttlePosition ?? '--'} unit="%" dotClassName="bg-purple-400" />
+              </div>
+            </div>
             <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <LineChart
+                  data={sampledData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  onMouseMove={(state: RechartsHoverState) => {
+                    if (state?.isTooltipActive && state.activePayload?.length) {
+                      setEngineHover(state.activePayload[0].payload);
+                    }
+                  }}
+                  onMouseLeave={() => setEngineHover(null)}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                   <XAxis dataKey="timeDisplay" stroke="#64748b" fontSize={12} />
-                  
+
                   <YAxis yAxisId="left" stroke="#ef4444" fontSize={12} label={{ value: 'Temp ºC', angle: -90, position: 'insideLeft', fill: '#ef4444' }} />
                   <YAxis yAxisId="right" orientation="right" stroke="#a855f7" fontSize={12} label={{ value: 'Acelerador %', angle: 90, position: 'insideRight', fill: '#a855f7' }} />
-                  
+
                   <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }} />
                   <Legend />
-                  
+
                   <Line yAxisId="left" type="monotone" dataKey="engineTempC" stroke="#ef4444" strokeWidth={2.5} name="Temperatura do Motor" dot={false} />
                   <Line yAxisId="right" type="monotone" dataKey="throttlePosition" stroke="#a855f7" strokeWidth={2} name="Abertura do Acelerador" strokeDasharray="5 5" dot={false} />
                 </LineChart>

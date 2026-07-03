@@ -49,6 +49,25 @@ namespace ApexLog.Domain.Entities
             }
         }
 
+        /// <summary>
+        /// Fecha uma viagem cujos pontos de telemetria foram gravados diretamente na base de dados
+        /// via bulk insert (fluxo de streaming do mobile), pelo que os agregados chegam já calculados
+        /// pelo repositório em vez de serem recalculados a partir de <see cref="_telemetryPoints"/>.
+        /// </summary>
+        public void CompleteWithAggregates(DateTime endTime, double distanceKm, int maxSpeedKmh, double avgSpeedKmh, int maxRpm)
+        {
+            if (endTime < StartTime)
+            {
+                throw new ArgumentException("O tempo de fim não pode ser menor que o tempo de início.");
+            }
+
+            EndTime = endTime;
+            DistanceKm = distanceKm;
+            MaxSpeedKmh = maxSpeedKmh;
+            AvgSpeedKmh = avgSpeedKmh;
+            MaxRpm = maxRpm;
+        }
+
         public void AddTelemetryPoints(TelemetryPoint point)
         {
             if (point == null) throw new ArgumentNullException(nameof(point));

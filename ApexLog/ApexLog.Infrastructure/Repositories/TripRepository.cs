@@ -38,5 +38,69 @@ namespace ApexLog.Infrastructure.Repositories
                 .Include(t => t.TelemetryPoints)
                 .FirstOrDefaultAsync(t => t.Id == id);
         }
+
+        public async Task<bool> ExistsAsync(Guid id)
+        {
+            return await _context.Trips.AnyAsync(t => t.Id == id);
+        }
+
+        /// <summary>
+        /// Insere um lote de pontos de telemetria diretamente, sem carregar o agregado Trip completo
+        /// para memória, para suportar o streaming de alta frequência vindo do mobile.
+        /// </summary>
+        public async Task AddTelemetryBatchAsync(Guid tripId, IEnumerable<TelemetryPoint> points)
+        {
+            if (!await ExistsAsync(tripId))
+            {
+                throw new KeyNotFoundException($"Viagem '{tripId}' não encontrada.");
+            }
+
+            var previousAutoDetect = _context.ChangeTracker.AutoDetectChangesEnabled;
+            _context.ChangeTracker.AutoDetectChangesEnabled = false;
+
+            try
+            {
+                foreach (var point in points)
+                {
+                    _context.TelemetryPoints.Add(point);
+                    _context.Entry(point).Property("TripId").CurrentValue = tripId;
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            finally
+            {
+                _context.ChangeTracker.AutoDetectChangesEnabled = previousAutoDetect;
+            }
+        }
+
+        /// <summary>
+        /// Calcula os agregados (Max/Avg) via SQL, sem carregar todos os pontos de telemetria para
+        /// memória, e fecha a viagem com esses valores.
+        /// </summary>
+        public async Task FinishTripAsync(Guid tripId, DateTime endTime, double distanceKm)
+        {
+            var trip = await _context.Trips.FirstOrDefaultAsync(t => t.Id == tripId);
+            if (trip == null)
+            {
+                throw new KeyNotFoundException($"Viagem '{tripId}' não encontrada.");
+            }
+
+            var pointsQuery = _context.TelemetryPoints.Where(p => EF.Property<Guid>(p, "TripId") == tripId);
+
+            int maxSpeed = 0;
+            double avgSpeed = 0;
+            int maxRpm = 0;
+
+            if (await pointsQuery.AnyAsync())
+            {
+                maxSpeed = await pointsQuery.MaxAsync(p => p.SpeedKmh);
+                avgSpeed = Math.Round(await pointsQuery.AverageAsync(p => p.SpeedKmh), 1);
+                maxRpm = await pointsQuery.MaxAsync(p => p.Rpm);
+            }
+
+            trip.CompleteWithAggregates(endTime, distanceKm, maxSpeed, avgSpeed, maxRpm);
+            await _context.SaveChangesAsync();
+        }
     }
 }
