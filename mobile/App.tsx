@@ -26,7 +26,6 @@ export default function App() {
   const [elmClient, setElmClient] = useState<Elm327Client | null>(null);
   const [isInitializingElm, setIsInitializingElm] = useState(false);
   const [motoId, setMotoId] = useState('CFMOTO-450SR');
-  const [distanceKm, setDistanceKm] = useState('0');
 
   const {
     latestSample,
@@ -156,8 +155,8 @@ export default function App() {
   const handleToggleRecording = async () => {
     try {
       if (isRecording) {
-        const parsedDistance = parseFloat(distanceKm.replace(',', '.')) || 0;
-        await stopTripRecording(parsedDistance);
+        // distanceKm não é enviada: o backend calcula-a a partir da velocidade OBD2 registada.
+        await stopTripRecording();
         alert('Viagem finalizada e enviada para o ApexLog!');
       } else {
         await startTripRecording(motoId);
@@ -219,14 +218,6 @@ export default function App() {
           placeholder="Identificador da mota"
           placeholderTextColor="#475569"
           editable={!isRecording}
-        />
-        <TextInput
-          style={styles.input}
-          value={distanceKm}
-          onChangeText={setDistanceKm}
-          placeholder="Distância percorrida (km)"
-          placeholderTextColor="#475569"
-          keyboardType="numeric"
         />
 
         <TouchableOpacity

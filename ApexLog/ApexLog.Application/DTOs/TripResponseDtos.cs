@@ -25,6 +25,9 @@ namespace ApexLog.Application.DTOs
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public double DistanceKm { get; set; }
+        public int MaxSpeedKmh { get; set; }
+        public double AvgSpeedKmh { get; set; }
+        public int MaxRpm { get; set; }
         public List<TelemetryPointResponseDto> TelemetryPoints { get; set; } = new();
     }
 

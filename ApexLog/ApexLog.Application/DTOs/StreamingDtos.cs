@@ -9,4 +9,8 @@ public record StartTripResponseDto(Guid TripId);
 
 public record TelemetryBatchDto(List<TelemetryPointDto> Points);
 
-public record FinishTripDto(DateTime EndTime, double DistanceKm);
+/// <summary>
+/// DistanceKm é opcional: quando omitida, o backend calcula-a por integração da
+/// velocidade OBD2 ao longo do tempo em vez de depender de introdução manual.
+/// </summary>
+public record FinishTripDto(DateTime EndTime, double? DistanceKm);

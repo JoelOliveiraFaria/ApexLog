@@ -61,9 +61,10 @@ export function TripDetails({ tripId, onBack }: TripDetailsProps) {
     [chartData]
   );
 
-  const lastPoint = sampledData.length > 0 ? sampledData[sampledData.length - 1] : null;
-  const perfDisplay = perfHover ?? lastPoint;
-  const engineDisplay = engineHover ?? lastPoint;
+  // Sem hover mostramos "--" em vez do último ponto: o fim da viagem tende a ter leituras
+  // degeneradas (motor/ignição desligados), o que tornava os cartões enganosamente a zero.
+  const perfDisplay = perfHover;
+  const engineDisplay = engineHover;
 
   if (loading) {
     return (

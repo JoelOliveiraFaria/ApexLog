@@ -49,7 +49,7 @@ public class UploadTelemetryService
         await _tripRepository.AddTelemetryBatchAsync(tripId, entities);
     }
 
-    public async Task FinishTripAsync(Guid tripId, DateTime endTime, double distanceKm)
+    public async Task FinishTripAsync(Guid tripId, DateTime endTime, double? distanceKm)
     {
         await _tripRepository.FinishTripAsync(tripId, endTime, distanceKm);
     }

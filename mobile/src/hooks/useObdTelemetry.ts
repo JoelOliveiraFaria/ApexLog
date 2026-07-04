@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import BackgroundService from 'react-native-background-actions';
 import { Elm327Client } from '../ble/Elm327Client';
 import { OBD_PIDS } from '../obd/pids';
 import {
@@ -14,19 +15,43 @@ const POLL_INTERVAL_MS = 150;
 const BATCH_FLUSH_SIZE = 20;
 const BATCH_FLUSH_INTERVAL_MS = 5000;
 
+/**
+ * Opções do foreground service Android usado durante a gravação: mantém o processo vivo
+ * (com wake lock) e mostra uma notificação persistente, para que o polling de PIDs não seja
+ * suspenso pelo Doze/App Standby quando o ecrã bloqueia ou a app vai para segundo plano.
+ */
+const RECORDING_SERVICE_OPTIONS = {
+  taskName: 'ApexLogTelemetry',
+  taskTitle: 'ApexLog a gravar viagem',
+  taskDesc: 'A recolher telemetria OBD2 da mota em segundo plano...',
+  taskIcon: { name: 'ic_launcher', type: 'mipmap' },
+  color: '#10b981',
+  foregroundServiceType: ['connectedDevice' as const],
+  parameters: {},
+};
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 interface UseObdTelemetryResult {
   latestSample: TelemetrySample | null;
   isRecording: boolean;
   pointsRecorded: number;
   lastError: string | null;
   startTripRecording: (motoId: string) => Promise<void>;
-  stopTripRecording: (distanceKm: number) => Promise<void>;
+  /** distanceKm é opcional: se omitida, o backend calcula-a a partir da velocidade OBD2. */
+  stopTripRecording: (distanceKm?: number) => Promise<void>;
 }
 
 /**
  * Faz o polling contínuo dos PIDs OBD2 (RPM, velocidade, acelerador, temperatura),
  * mantém um buffer local de pontos e envia-os em lotes para a API durante a gravação
  * da viagem, para não perder dados caso a app feche a meio do percurso.
+ *
+ * Fora da gravação, o polling corre num `setInterval` normal (só serve para as gauges ao
+ * vivo, é dispensável se o Android o suspender). Durante a gravação, corre dentro de um
+ * foreground service (`react-native-background-actions`) para continuar com o ecrã bloqueado.
  */
 export function useObdTelemetry(elm: Elm327Client | null): UseObdTelemetryResult {
   const [latestSample, setLatestSample] = useState<TelemetrySample | null>(null);
@@ -38,7 +63,7 @@ export function useObdTelemetry(elm: Elm327Client | null): UseObdTelemetryResult
   const isBusyRef = useRef(false);
   const tripIdRef = useRef<string | null>(null);
   const pendingBatchRef = useRef<TelemetrySample[]>([]);
-  const flushIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastFlushAtRef = useRef(0);
 
   const flushBatch = useCallback(async () => {
     const tripId = tripIdRef.current;
@@ -80,7 +105,11 @@ export function useObdTelemetry(elm: Elm327Client | null): UseObdTelemetryResult
         pendingBatchRef.current.push(sample);
         setPointsRecorded((count) => count + 1);
 
-        if (pendingBatchRef.current.length >= BATCH_FLUSH_SIZE) {
+        const shouldFlushBySize = pendingBatchRef.current.length >= BATCH_FLUSH_SIZE;
+        const shouldFlushByTime = Date.now() - lastFlushAtRef.current >= BATCH_FLUSH_INTERVAL_MS;
+
+        if (shouldFlushBySize || shouldFlushByTime) {
+          lastFlushAtRef.current = Date.now();
           void flushBatch();
         }
       }
@@ -91,15 +120,18 @@ export function useObdTelemetry(elm: Elm327Client | null): UseObdTelemetryResult
     }
   }, [elm, flushBatch]);
 
+  // Polling "leve" só para as gauges ao vivo quando não se está a gravar; para durante a
+  // gravação para não colidir com o loop do foreground service (o ELM327 só aceita um
+  // comando de cada vez).
   useEffect(() => {
-    if (!elm) return undefined;
+    if (!elm || isRecording) return undefined;
 
     const intervalId = setInterval(() => {
       void pollOnce();
     }, POLL_INTERVAL_MS);
 
     return () => clearInterval(intervalId);
-  }, [elm, pollOnce]);
+  }, [elm, isRecording, pollOnce]);
 
   const startTripRecording = useCallback(
     async (motoId: string) => {
@@ -108,27 +140,27 @@ export function useObdTelemetry(elm: Elm327Client | null): UseObdTelemetryResult
 
       tripIdRef.current = tripId;
       pendingBatchRef.current = [];
+      lastFlushAtRef.current = Date.now();
       setPointsRecorded(0);
       isRecordingRef.current = true;
       setIsRecording(true);
 
-      flushIntervalRef.current = setInterval(() => {
-        void flushBatch();
-      }, BATCH_FLUSH_INTERVAL_MS);
+      await BackgroundService.start(async () => {
+        while (BackgroundService.isRunning()) {
+          await pollOnce();
+          await sleep(POLL_INTERVAL_MS);
+        }
+      }, RECORDING_SERVICE_OPTIONS);
     },
-    [flushBatch]
+    [pollOnce]
   );
 
   const stopTripRecording = useCallback(
-    async (distanceKm: number) => {
+    async (distanceKm?: number) => {
       isRecordingRef.current = false;
       setIsRecording(false);
 
-      if (flushIntervalRef.current) {
-        clearInterval(flushIntervalRef.current);
-        flushIntervalRef.current = null;
-      }
-
+      await BackgroundService.stop();
       await flushBatch();
 
       const tripId = tripIdRef.current;
@@ -142,7 +174,9 @@ export function useObdTelemetry(elm: Elm327Client | null): UseObdTelemetryResult
 
   useEffect(() => {
     return () => {
-      if (flushIntervalRef.current) clearInterval(flushIntervalRef.current);
+      if (isRecordingRef.current) {
+        BackgroundService.stop().catch(() => {});
+      }
     };
   }, []);
 

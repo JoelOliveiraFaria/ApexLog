@@ -76,9 +76,11 @@ namespace ApexLog.Infrastructure.Repositories
 
         /// <summary>
         /// Calcula os agregados (Max/Avg) via SQL, sem carregar todos os pontos de telemetria para
-        /// memória, e fecha a viagem com esses valores.
+        /// memória, e fecha a viagem com esses valores. Quando não é fornecida uma distância explícita,
+        /// é calculada por integração trapezoidal da velocidade do veículo ao longo do tempo — o mesmo
+        /// princípio de um conta-quilómetros, usando o sensor de velocidade da própria mota via OBD2.
         /// </summary>
-        public async Task FinishTripAsync(Guid tripId, DateTime endTime, double distanceKm)
+        public async Task FinishTripAsync(Guid tripId, DateTime endTime, double? distanceKm)
         {
             var trip = await _context.Trips.FirstOrDefaultAsync(t => t.Id == tripId);
             if (trip == null)
@@ -91,15 +93,36 @@ namespace ApexLog.Infrastructure.Repositories
             int maxSpeed = 0;
             double avgSpeed = 0;
             int maxRpm = 0;
+            double resolvedDistanceKm = distanceKm ?? 0;
 
             if (await pointsQuery.AnyAsync())
             {
                 maxSpeed = await pointsQuery.MaxAsync(p => p.SpeedKmh);
                 avgSpeed = Math.Round(await pointsQuery.AverageAsync(p => p.SpeedKmh), 1);
                 maxRpm = await pointsQuery.MaxAsync(p => p.Rpm);
+
+                if (distanceKm == null)
+                {
+                    var orderedSamples = await pointsQuery
+                        .OrderBy(p => p.Timestamp)
+                        .Select(p => new { p.Timestamp, p.SpeedKmh })
+                        .ToListAsync();
+
+                    double distanceAccumulatorKm = 0;
+                    for (var i = 1; i < orderedSamples.Count; i++)
+                    {
+                        var elapsedHours = (orderedSamples[i].Timestamp - orderedSamples[i - 1].Timestamp).TotalHours;
+                        if (elapsedHours <= 0) continue;
+
+                        var avgSegmentSpeedKmh = (orderedSamples[i].SpeedKmh + orderedSamples[i - 1].SpeedKmh) / 2.0;
+                        distanceAccumulatorKm += avgSegmentSpeedKmh * elapsedHours;
+                    }
+
+                    resolvedDistanceKm = Math.Round(distanceAccumulatorKm, 2);
+                }
             }
 
-            trip.CompleteWithAggregates(endTime, distanceKm, maxSpeed, avgSpeed, maxRpm);
+            trip.CompleteWithAggregates(endTime, resolvedDistanceKm, maxSpeed, avgSpeed, maxRpm);
             await _context.SaveChangesAsync();
         }
     }

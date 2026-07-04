@@ -10,7 +10,8 @@ export interface StartTripPayload {
 
 export interface FinishTripPayload {
   endTime: string;
-  distanceKm: number;
+  /** Se omitida, o backend calcula-a a partir da velocidade OBD2 integrada ao longo do tempo. */
+  distanceKm?: number;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {

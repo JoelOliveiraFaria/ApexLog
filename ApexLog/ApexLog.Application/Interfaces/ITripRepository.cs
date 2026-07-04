@@ -14,6 +14,6 @@ namespace ApexLog.Application.Interfaces
         Task<IReadOnlyList<Trip>> GetAllAsync();
         Task<bool> ExistsAsync(Guid id);
         Task AddTelemetryBatchAsync(Guid tripId, IEnumerable<TelemetryPoint> points);
-        Task FinishTripAsync(Guid tripId, DateTime endTime, double distanceKm);
+        Task FinishTripAsync(Guid tripId, DateTime endTime, double? distanceKm);
     }
 }

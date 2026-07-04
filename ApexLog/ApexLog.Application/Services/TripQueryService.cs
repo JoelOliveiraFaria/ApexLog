@@ -47,6 +47,9 @@ namespace ApexLog.Application.Services
                 StartTime = trip.StartTime,
                 EndTime = trip.EndTime,
                 DistanceKm = trip.DistanceKm,
+                MaxSpeedKmh = trip.MaxSpeedKmh,
+                AvgSpeedKmh = trip.AvgSpeedKmh,
+                MaxRpm = trip.MaxRpm,
                 TelemetryPoints = trip.TelemetryPoints.Select(p => new TelemetryPointResponseDto
                 {
                     Timestamp = p.Timestamp,
