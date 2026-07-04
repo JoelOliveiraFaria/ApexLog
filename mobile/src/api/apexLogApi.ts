@@ -1,6 +1,7 @@
 import type { TelemetrySample } from '../types/telemetry';
 
-const API_BASE_URL = 'http://192.168.1.194:5084';
+// Túnel ngrok — expõe a API local à internet para uso em viagem (fora da rede local).
+const API_BASE_URL = 'https://neomi-unhastened-gunner.ngrok-free.dev';
 
 export interface StartTripPayload {
   motoId: string;
@@ -14,7 +15,7 @@ export interface FinishTripPayload {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
     ...init,
   });
 

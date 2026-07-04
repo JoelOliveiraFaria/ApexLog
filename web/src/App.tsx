@@ -15,7 +15,7 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('http://192.168.1.194:5084/api/trips');
+      const response = await fetch('http://192.168.50.167:5084/api/trips');
       if (!response.ok) throw new Error(`Erro na API: ${response.status}`);
       const data = await response.json();
       setTrips(data);
