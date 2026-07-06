@@ -126,7 +126,12 @@ export function TripDetails({ tripId, onBack }: TripDetailsProps) {
           </div>
           <div>
             <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Moto Analisada</p>
-            <p className="text-2xl font-bold text-white">{trip.motoId}</p>
+            <p className="text-2xl font-bold text-white">
+              {trip.motorcycle.nickname || `${trip.motorcycle.make} ${trip.motorcycle.model}`}
+            </p>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              {trip.motorcycle.make} {trip.motorcycle.model} · {trip.motorcycle.year}
+            </p>
           </div>
         </div>
       </div>

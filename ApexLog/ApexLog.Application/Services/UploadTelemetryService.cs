@@ -7,16 +7,23 @@ namespace ApexLog.Application.Services;
 public class UploadTelemetryService
 {
     private readonly ITripRepository _tripRepository;
+    private readonly IMotorcycleRepository _motorcycleRepository;
 
-    public UploadTelemetryService(ITripRepository tripRepository)
+    public UploadTelemetryService(ITripRepository tripRepository, IMotorcycleRepository motorcycleRepository)
     {
         _tripRepository = tripRepository;
+        _motorcycleRepository = motorcycleRepository;
     }
 
     public async Task UploadAsync(UploadTripDto dto)
     {
+        if (!await _motorcycleRepository.ExistsAsync(dto.MotorcycleId))
+        {
+            throw new KeyNotFoundException($"Mota '{dto.MotorcycleId}' não encontrada.");
+        }
+
         // 1. Cria a entidade usando o construtor público de negócio
-        var trip = new Trip(dto.MotoId, dto.StartTime);
+        var trip = new Trip(dto.MotorcycleId, dto.StartTime);
 
         // 2. Passa os pontos do DTO para o comportamento do Domínio
         foreach (var p in dto.TelemetryPoints)
@@ -36,9 +43,14 @@ public class UploadTelemetryService
     /// Cria uma viagem em aberto (sem EndTime) para permitir o streaming de telemetria
     /// em tempo real a partir do mobile, ponto por ponto/lote em vez de tudo de uma vez.
     /// </summary>
-    public async Task<Guid> StartTripAsync(string motoId, DateTime startTime)
+    public async Task<Guid> StartTripAsync(Guid motorcycleId, DateTime startTime)
     {
-        var trip = new Trip(motoId, startTime);
+        if (!await _motorcycleRepository.ExistsAsync(motorcycleId))
+        {
+            throw new KeyNotFoundException($"Mota '{motorcycleId}' não encontrada.");
+        }
+
+        var trip = new Trip(motorcycleId, startTime);
         await _tripRepository.SaveAsync(trip);
         return trip.Id;
     }

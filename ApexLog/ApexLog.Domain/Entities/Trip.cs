@@ -9,7 +9,8 @@ namespace ApexLog.Domain.Entities
     public class Trip
     {
         public Guid Id { get; private set; }
-        public string MotoId { get; private set; }
+        public Guid MotorcycleId { get; private set; }
+        public Motorcycle? Motorcycle { get; private set; }
         public DateTime StartTime { get; private set; }
         public DateTime EndTime { get; private set; }
         public double DistanceKm { get; private set; }
@@ -25,10 +26,10 @@ namespace ApexLog.Domain.Entities
 
         protected Trip() { }
 
-        public Trip(string motoid, DateTime startTime) 
-        { 
+        public Trip(Guid motorcycleId, DateTime startTime)
+        {
             Id = Guid.NewGuid();
-            MotoId = string.IsNullOrWhiteSpace(motoid) ? throw new ArgumentException("Id is mandatory") : motoid;
+            MotorcycleId = motorcycleId != Guid.Empty ? motorcycleId : throw new ArgumentException("MotorcycleId is mandatory");
             StartTime = startTime;
         }
 

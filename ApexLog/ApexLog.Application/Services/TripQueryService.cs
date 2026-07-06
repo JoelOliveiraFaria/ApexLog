@@ -24,7 +24,7 @@ namespace ApexLog.Application.Services
             return trips.Select(t => new TripSummaryDto
             {
                 Id = t.Id,
-                MotoId = t.MotoId,
+                Motorcycle = MapMotorcycle(t),
                 StartTime = t.StartTime,
                 EndTime = t.EndTime,
                 DistanceKm = t.DistanceKm,
@@ -43,7 +43,7 @@ namespace ApexLog.Application.Services
             return new TripDetailDto
             {
                 Id = trip.Id,
-                MotoId = trip.MotoId,
+                Motorcycle = MapMotorcycle(trip),
                 StartTime = trip.StartTime,
                 EndTime = trip.EndTime,
                 DistanceKm = trip.DistanceKm,
@@ -59,6 +59,16 @@ namespace ApexLog.Application.Services
                     EngineTempC = p.EngineTempC,
                 }).ToList()
             };
+        }
+
+        // A viagem exige sempre uma mota associada (FK obrigatória), por isso a navegação só vem
+        // nula se o repositório se esquecer do Include — assinalar isso alto e cedo em vez de um NRE.
+        private static MotorcycleDto MapMotorcycle(Domain.Entities.Trip trip)
+        {
+            var motorcycle = trip.Motorcycle
+                ?? throw new InvalidOperationException($"A mota da viagem '{trip.Id}' não foi carregada (falta Include).");
+
+            return new MotorcycleDto(motorcycle.Id, motorcycle.Make, motorcycle.Model, motorcycle.Year, motorcycle.Nickname);
         }
     }
 }

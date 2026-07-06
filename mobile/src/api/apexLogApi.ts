@@ -1,10 +1,11 @@
 import type { TelemetrySample } from '../types/telemetry';
+import type { Motorcycle } from '../types/motorcycle';
 
 // Túnel ngrok — expõe a API local à internet para uso em viagem (fora da rede local).
 const API_BASE_URL = 'https://neomi-unhastened-gunner.ngrok-free.dev';
 
 export interface StartTripPayload {
-  motoId: string;
+  motorcycleId: string;
   startTime: string;
 }
 
@@ -30,6 +31,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   return (await response.json()) as T;
+}
+
+/** Lista as motas registadas no backend, para o utilizador escolher qual está a usar antes de gravar. */
+export async function fetchMotorcycles(): Promise<Motorcycle[]> {
+  return request<Motorcycle[]>('/api/motorcycles');
 }
 
 /** Cria uma viagem em aberto no backend e devolve o seu Id para streaming de telemetria. */

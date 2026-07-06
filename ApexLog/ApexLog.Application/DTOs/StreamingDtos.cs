@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ApexLog.Application.DTOs;
 
-public record StartTripDto(string MotoId, DateTime StartTime);
+public record StartTripDto(Guid MotorcycleId, DateTime StartTime);
 
 public record StartTripResponseDto(Guid TripId);
 

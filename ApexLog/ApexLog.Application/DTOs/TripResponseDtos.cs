@@ -9,7 +9,7 @@ namespace ApexLog.Application.DTOs
     public class TripSummaryDto
     {
         public Guid Id { get; set; }
-        public string MotoId { get; set; } = string.Empty;
+        public MotorcycleDto Motorcycle { get; set; } = null!;
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public double DistanceKm { get; set; }
@@ -21,7 +21,7 @@ namespace ApexLog.Application.DTOs
     public class TripDetailDto
     {
         public Guid Id { get; set; }
-        public string MotoId { get; set; } = string.Empty;
+        public MotorcycleDto Motorcycle { get; set; } = null!;
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public double DistanceKm { get; set; }

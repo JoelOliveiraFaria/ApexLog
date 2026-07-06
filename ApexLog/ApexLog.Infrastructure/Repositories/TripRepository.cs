@@ -28,6 +28,7 @@ namespace ApexLog.Infrastructure.Repositories
         public async Task<IReadOnlyList<Trip>> GetAllAsync()
         {
             return await _context.Trips
+                .Include(t => t.Motorcycle)
                 .OrderByDescending(t => t.StartTime)
                 .ToListAsync();
         }
@@ -35,6 +36,7 @@ namespace ApexLog.Infrastructure.Repositories
         public async Task<Trip?> GetByIdAsync(Guid id)
         {
             return await _context.Trips
+                .Include(t => t.Motorcycle)
                 .Include(t => t.TelemetryPoints)
                 .FirstOrDefaultAsync(t => t.Id == id);
         }

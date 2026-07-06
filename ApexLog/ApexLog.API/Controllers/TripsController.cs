@@ -29,6 +29,10 @@ namespace ApexLog.API.Controllers
 
                 return Ok(new { message = "Viagem e pontos de telemetria gravados com sucesso no Postgres!" });
             }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
             catch (ArgumentException ex)
             {
                 return BadRequest(new { error = ex.Message });
@@ -66,8 +70,12 @@ namespace ApexLog.API.Controllers
         {
             try
             {
-                var tripId = await _uploadService.StartTripAsync(request.MotoId, request.StartTime);
+                var tripId = await _uploadService.StartTripAsync(request.MotorcycleId, request.StartTime);
                 return Ok(new StartTripResponseDto(tripId));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
             }
             catch (ArgumentException ex)
             {

@@ -6,16 +6,18 @@ using ApexLog.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- CONFIGURAÇÃO DA INFRAESTRUTURA E DOMÍNIO ---
-// 1. Configurar o DbContext com PostgreSQL (Lê o appsettings/secrets)
+// --- CONFIGURAï¿½ï¿½O DA INFRAESTRUTURA E DOMï¿½NIO ---
+// 1. Configurar o DbContext com PostgreSQL (Lï¿½ o appsettings/secrets)
 var connectionString = builder.Configuration.GetConnectionString("PostgresConnection");
 builder.Services.AddDbContext<ApexLogDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// 2. Registar os componentes da Clean Architecture (Injeção de Dependência)
+// 2. Registar os componentes da Clean Architecture (Injeï¿½ï¿½o de Dependï¿½ncia)
 builder.Services.AddScoped<ITripRepository, TripRepository>();
+builder.Services.AddScoped<IMotorcycleRepository, MotorcycleRepository>();
 builder.Services.AddScoped<UploadTelemetryService>();
 builder.Services.AddScoped<TripQueryService>();
+builder.Services.AddScoped<MotorcycleService>();
 // ------------------------------------------------
 
 // Add services to the container.

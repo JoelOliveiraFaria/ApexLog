@@ -14,19 +14,36 @@ namespace ApexLog.Infrastructure.Data
 
         public DbSet<Trip> Trips => Set<Trip>();
         public DbSet<TelemetryPoint> TelemetryPoints => Set<TelemetryPoint>();
+        public DbSet<Motorcycle> Motorcycles => Set<Motorcycle>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Motorcycle>(entity =>
+            {
+                entity.ToTable("motorcycles");
+                entity.HasKey(m => m.Id);
+                entity.Property(m => m.Make).IsRequired().HasMaxLength(50);
+                entity.Property(m => m.Model).IsRequired().HasMaxLength(50);
+                entity.Property(m => m.Year).IsRequired();
+                entity.Property(m => m.Nickname).HasMaxLength(50);
+            });
+
             modelBuilder.Entity<Trip>(entity =>
             {
                 entity.ToTable("trips");
                 entity.HasKey(t => t.Id);
-                entity.Property(t => t.MotoId).IsRequired().HasMaxLength(50);
+                entity.Property(t => t.MotorcycleId).IsRequired();
                 entity.Property(t => t.StartTime).IsRequired();
                 entity.Property(t => t.EndTime);
                 entity.Property(t => t.DistanceKm).IsRequired();
+
+                // Restrict: uma mota com histórico de viagens não pode ser apagada por engano.
+                entity.HasOne(t => t.Motorcycle)
+                  .WithMany()
+                  .HasForeignKey(t => t.MotorcycleId)
+                  .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasMany(t => t.TelemetryPoints)
                   .WithOne()

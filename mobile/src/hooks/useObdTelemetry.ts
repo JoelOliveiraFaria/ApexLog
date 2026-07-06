@@ -39,7 +39,7 @@ interface UseObdTelemetryResult {
   isRecording: boolean;
   pointsRecorded: number;
   lastError: string | null;
-  startTripRecording: (motoId: string) => Promise<void>;
+  startTripRecording: (motorcycleId: string) => Promise<void>;
   /** distanceKm é opcional: se omitida, o backend calcula-a a partir da velocidade OBD2. */
   stopTripRecording: (distanceKm?: number) => Promise<void>;
 }
@@ -134,9 +134,9 @@ export function useObdTelemetry(elm: Elm327Client | null): UseObdTelemetryResult
   }, [elm, isRecording, pollOnce]);
 
   const startTripRecording = useCallback(
-    async (motoId: string) => {
+    async (motorcycleId: string) => {
       setLastError(null);
-      const tripId = await startTrip({ motoId, startTime: new Date().toISOString() });
+      const tripId = await startTrip({ motorcycleId, startTime: new Date().toISOString() });
 
       tripIdRef.current = tripId;
       pendingBatchRef.current = [];

@@ -8,13 +8,14 @@ import {
   PermissionsAndroid,
   Platform,
   ActivityIndicator,
-  TextInput,
   ScrollView,
 } from 'react-native';
 import { BleManager, Device } from 'react-native-ble-plx';
 import { StatusBar } from 'expo-status-bar';
 import { Elm327Client } from './src/ble/Elm327Client';
 import { useObdTelemetry } from './src/hooks/useObdTelemetry';
+import { MotorcycleSelector } from './src/components/MotorcycleSelector';
+import type { Motorcycle } from './src/types/motorcycle';
 
 // Criar a instância global do gestor de Bluetooth
 const manager = new BleManager();
@@ -25,7 +26,7 @@ export default function App() {
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
   const [elmClient, setElmClient] = useState<Elm327Client | null>(null);
   const [isInitializingElm, setIsInitializingElm] = useState(false);
-  const [motoId, setMotoId] = useState('CFMOTO-450SR');
+  const [selectedMotorcycle, setSelectedMotorcycle] = useState<Motorcycle | null>(null);
 
   const {
     latestSample,
@@ -153,13 +154,18 @@ export default function App() {
   };
 
   const handleToggleRecording = async () => {
+    if (!isRecording && !selectedMotorcycle) {
+      alert('Escolhe primeiro qual mota estás a usar.');
+      return;
+    }
+
     try {
       if (isRecording) {
         // distanceKm não é enviada: o backend calcula-a a partir da velocidade OBD2 registada.
         await stopTripRecording();
         alert('Viagem finalizada e enviada para o ApexLog!');
       } else {
-        await startTripRecording(motoId);
+        await startTripRecording(selectedMotorcycle!.id);
       }
     } catch (err) {
       console.log('Erro ao alternar gravação:', err);
@@ -210,19 +216,21 @@ export default function App() {
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Dados da Viagem</Text>
-        <TextInput
-          style={styles.input}
-          value={motoId}
-          onChangeText={setMotoId}
-          placeholder="Identificador da mota"
-          placeholderTextColor="#475569"
-          editable={!isRecording}
+        <Text style={styles.sectionTitle}>Mota utilizada</Text>
+        <MotorcycleSelector
+          selectedId={selectedMotorcycle?.id ?? null}
+          onSelect={setSelectedMotorcycle}
+          disabled={isRecording}
         />
 
         <TouchableOpacity
-          style={[styles.button, isRecording && styles.buttonStop]}
+          style={[
+            styles.button,
+            isRecording && styles.buttonStop,
+            !isRecording && !selectedMotorcycle && styles.buttonDisabled,
+          ]}
           onPress={handleToggleRecording}
+          disabled={!isRecording && !selectedMotorcycle}
         >
           <Text style={styles.buttonText}>{isRecording ? 'Finalizar Viagem' : 'Iniciar Gravação'}</Text>
         </TouchableOpacity>

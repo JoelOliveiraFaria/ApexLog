@@ -7,9 +7,17 @@ export interface TelemetryPoint {
   engineTempC: number;
 }
 
+export interface Motorcycle {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  nickname: string;
+}
+
 export interface Trip {
   id: string;
-  motoId: string;
+  motorcycle: Motorcycle;
   startTime: string;
   endTime: string;
   distanceKm: number;

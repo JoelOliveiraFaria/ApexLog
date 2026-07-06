@@ -5,7 +5,7 @@ namespace ApexLog.Application.DTOs;
 
 public class UploadTripDto
 {
-    public string MotoId { get; set; } = string.Empty;
+    public Guid MotorcycleId { get; set; }
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public double DistanceKm { get; set; }

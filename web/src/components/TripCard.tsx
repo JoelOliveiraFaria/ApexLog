@@ -24,7 +24,7 @@ export function TripCard({ trip, onClick }: TripCardProps) {
           <span className="text-sm font-medium">{formattedDate}</span>
         </div>
         <span className="px-3 py-1 bg-slate-800 text-slate-300 font-semibold text-xs rounded-full border border-slate-700">
-          {trip.motoId}
+          {trip.motorcycle.nickname || `${trip.motorcycle.make} ${trip.motorcycle.model}`}
         </span>
       </div>
 
