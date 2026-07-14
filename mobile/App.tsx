@@ -173,6 +173,22 @@ export default function App() {
     }
   };
 
+  // Ecrã 1: escolher (ou criar) a mota antes de sequer procurar o OBD2
+  if (!selectedMotorcycle) {
+    return (
+      <View style={styles.container}>
+        <StatusBar style="light" />
+
+        <View style={styles.header}>
+          <Text style={styles.title}>APEXLOG <Text style={styles.subtitle}>MOBILE</Text></Text>
+          <Text style={styles.description}>Escolhe a mota que vais usar nesta viagem</Text>
+        </View>
+
+        <MotorcycleSelector selectedId={null} onSelect={setSelectedMotorcycle} />
+      </View>
+    );
+  }
+
   // Ecrã de Telemetria (pós-conexão + protocolo ELM327 inicializado)
   if (connectedDevice && elmClient) {
     return (
@@ -216,21 +232,16 @@ export default function App() {
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Mota utilizada</Text>
-        <MotorcycleSelector
-          selectedId={selectedMotorcycle?.id ?? null}
-          onSelect={setSelectedMotorcycle}
-          disabled={isRecording}
-        />
+        <View style={styles.statusBox}>
+          <Text style={styles.statusLabel}>Mota utilizada:</Text>
+          <Text style={styles.statusValue}>
+            {selectedMotorcycle.nickname || `${selectedMotorcycle.make} ${selectedMotorcycle.model}`}
+          </Text>
+        </View>
 
         <TouchableOpacity
-          style={[
-            styles.button,
-            isRecording && styles.buttonStop,
-            !isRecording && !selectedMotorcycle && styles.buttonDisabled,
-          ]}
+          style={[styles.button, isRecording && styles.buttonStop]}
           onPress={handleToggleRecording}
-          disabled={!isRecording && !selectedMotorcycle}
         >
           <Text style={styles.buttonText}>{isRecording ? 'Finalizar Viagem' : 'Iniciar Gravação'}</Text>
         </TouchableOpacity>
@@ -253,6 +264,16 @@ export default function App() {
       </View>
 
       {/* Estado da Conexão */}
+      <View style={styles.statusBox}>
+        <Text style={styles.statusLabel}>Mota selecionada:</Text>
+        <Text style={styles.statusValue}>
+          {selectedMotorcycle.nickname || `${selectedMotorcycle.make} ${selectedMotorcycle.model}`}
+        </Text>
+      </View>
+      <TouchableOpacity onPress={() => setSelectedMotorcycle(null)} style={styles.linkButton}>
+        <Text style={styles.linkButtonText}>Trocar mota</Text>
+      </TouchableOpacity>
+
       <View style={styles.statusBox}>
         <Text style={styles.statusLabel}>Estado do Hardware:</Text>
         <Text style={styles.statusValue}>

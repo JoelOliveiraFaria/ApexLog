@@ -15,6 +15,13 @@ export interface FinishTripPayload {
   distanceKm?: number;
 }
 
+export interface CreateMotorcyclePayload {
+  make: string;
+  model: string;
+  year: number;
+  nickname: string;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
@@ -36,6 +43,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 /** Lista as motas registadas no backend, para o utilizador escolher qual está a usar antes de gravar. */
 export async function fetchMotorcycles(): Promise<Motorcycle[]> {
   return request<Motorcycle[]>('/api/motorcycles');
+}
+
+/** Regista uma nova mota no backend. */
+export async function createMotorcycle(payload: CreateMotorcyclePayload): Promise<Motorcycle> {
+  return request<Motorcycle>('/api/motorcycles', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 /** Cria uma viagem em aberto no backend e devolve o seu Id para streaming de telemetria. */
