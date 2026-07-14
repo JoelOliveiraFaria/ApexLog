@@ -1,13 +1,14 @@
-﻿using ApexLog.Application.DTOs;
+using ApexLog.Application.DTOs;
 using ApexLog.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.WebSockets;
-using System.Reflection.Metadata.Ecma335;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace ApexLog.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class TripsController : ControllerBase
     {
         private readonly UploadTelemetryService _uploadService;
@@ -19,13 +20,16 @@ namespace ApexLog.API.Controllers
             _queryService = queryService;
         }
 
+        private Guid CurrentUserId =>
+            Guid.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)!.Value);
+
         // 1. Criar Viagem (POST /api/trips)
         [HttpPost]
         public async Task<IActionResult> UploadTrip([FromBody] UploadTripDto request)
         {
             try
             {
-                await _uploadService.UploadAsync(request);
+                await _uploadService.UploadAsync(CurrentUserId, request);
 
                 return Ok(new { message = "Viagem e pontos de telemetria gravados com sucesso no Postgres!" });
             }
@@ -46,7 +50,7 @@ namespace ApexLog.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IReadOnlyList<TripSummaryDto>>> GetTrips()
         {
-            var trips = await _queryService.GetAllTripsAsync();
+            var trips = await _queryService.GetAllTripsAsync(CurrentUserId);
 
             return Ok(trips);
         }
@@ -54,7 +58,7 @@ namespace ApexLog.API.Controllers
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<TripDetailDto>> GetTripById(Guid id)
         {
-            var trip = await _queryService.GetTripByIdAsync(id);
+            var trip = await _queryService.GetTripByIdAsync(CurrentUserId, id);
 
             if (trip == null)
             {
@@ -70,7 +74,7 @@ namespace ApexLog.API.Controllers
         {
             try
             {
-                var tripId = await _uploadService.StartTripAsync(request.MotorcycleId, request.StartTime);
+                var tripId = await _uploadService.StartTripAsync(CurrentUserId, request.MotorcycleId, request.StartTime);
                 return Ok(new StartTripResponseDto(tripId));
             }
             catch (KeyNotFoundException ex)
@@ -94,7 +98,7 @@ namespace ApexLog.API.Controllers
 
             try
             {
-                await _uploadService.AppendTelemetryBatchAsync(id, request.Points);
+                await _uploadService.AppendTelemetryBatchAsync(CurrentUserId, id, request.Points);
                 return Ok(new { message = $"{request.Points.Count} pontos gravados com sucesso.", tripId = id });
             }
             catch (KeyNotFoundException ex)
@@ -109,7 +113,7 @@ namespace ApexLog.API.Controllers
         {
             try
             {
-                await _uploadService.FinishTripAsync(id, request.EndTime, request.DistanceKm);
+                await _uploadService.FinishTripAsync(CurrentUserId, id, request.EndTime, request.DistanceKm);
                 return Ok(new { message = "Viagem finalizada e métricas agregadas calculadas." });
             }
             catch (KeyNotFoundException ex)

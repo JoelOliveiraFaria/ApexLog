@@ -41,7 +41,8 @@
           "bluetoothPeripheralPermission": "Permissão para emparelhar com o vGate iCar Pro.",
           "bluetoothAlwaysPermission": "O ApexLog necessita de Bluetooth constante para registar a telemetria da sua mota."
         }
-      ]
+      ],
+      "expo-secure-store"
     ]
   }
 }

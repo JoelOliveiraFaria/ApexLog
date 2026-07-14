@@ -12,21 +12,68 @@ import {
 } from 'react-native';
 import { BleManager, Device } from 'react-native-ble-plx';
 import { StatusBar } from 'expo-status-bar';
+import * as SecureStore from 'expo-secure-store';
 import { Elm327Client } from './src/ble/Elm327Client';
 import { useObdTelemetry } from './src/hooks/useObdTelemetry';
 import { MotorcycleSelector } from './src/components/MotorcycleSelector';
+import { AuthScreen } from './src/components/AuthScreen';
+import { AccountMenuButton } from './src/components/AccountMenuButton';
+import { ProfileScreen } from './src/components/ProfileScreen';
+import { setAuthToken, setUnauthorizedHandler, type AuthResponse } from './src/api/apexLogApi';
 import type { Motorcycle } from './src/types/motorcycle';
 
 // Criar a instância global do gestor de Bluetooth
 const manager = new BleManager();
 
+const AUTH_TOKEN_STORAGE_KEY = 'apexlog_auth_token';
+
 export default function App() {
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
+
   const [isScanning, setIsScanning] = useState(false);
   const [devices, setDevices] = useState<Device[]>([]);
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
   const [elmClient, setElmClient] = useState<Elm327Client | null>(null);
   const [isInitializingElm, setIsInitializingElm] = useState(false);
   const [selectedMotorcycle, setSelectedMotorcycle] = useState<Motorcycle | null>(null);
+
+  const handleLogout = async () => {
+    await SecureStore.deleteItemAsync(AUTH_TOKEN_STORAGE_KEY);
+    setAuthToken(null);
+    elmClient?.destroy();
+    setElmClient(null);
+    setConnectedDevice(null);
+    setSelectedMotorcycle(null);
+    setUserName(null);
+  };
+
+  // Se já houver um token guardado (sessão anterior), reidrata sem pedir login outra vez.
+  // Um 401 numa chamada futura (token expirado/inválido) força logout via este mesmo handler.
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      void handleLogout();
+    });
+
+    (async () => {
+      const storedToken = await SecureStore.getItemAsync(AUTH_TOKEN_STORAGE_KEY);
+      if (storedToken) {
+        setAuthToken(storedToken);
+        setUserName('Utilizador');
+      }
+      setIsAuthChecked(true);
+    })();
+
+    return () => setUnauthorizedHandler(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleAuthenticated = async (auth: AuthResponse) => {
+    await SecureStore.setItemAsync(AUTH_TOKEN_STORAGE_KEY, auth.token);
+    setAuthToken(auth.token);
+    setUserName(auth.name);
+  };
 
   const {
     latestSample,
@@ -173,7 +220,31 @@ export default function App() {
     }
   };
 
-  // Ecrã 1: escolher (ou criar) a mota antes de sequer procurar o OBD2
+  // Ecrã 0: nada a mostrar enquanto se verifica se já existe uma sessão guardada
+  if (!isAuthChecked) {
+    return <View style={styles.container} />;
+  }
+
+  // Ecrã 1: login/registo — obrigatório antes de qualquer outra funcionalidade
+  if (!userName) {
+    return <AuthScreen onAuthenticated={handleAuthenticated} />;
+  }
+
+  // Ecrã de Perfil — sobrepõe-se a qualquer outro ecrã enquanto ativo
+  if (showProfile) {
+    return (
+      <ProfileScreen
+        onBack={() => setShowProfile(false)}
+        onNavigateToMotorcycles={() => {
+          setShowProfile(false);
+          setSelectedMotorcycle(null);
+        }}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // Ecrã 2: escolher (ou criar) a mota antes de sequer procurar o OBD2
   if (!selectedMotorcycle) {
     return (
       <View style={styles.container}>
@@ -185,6 +256,8 @@ export default function App() {
         </View>
 
         <MotorcycleSelector selectedId={null} onSelect={setSelectedMotorcycle} />
+
+        <AccountMenuButton onPress={() => setShowProfile(true)} />
       </View>
     );
   }
@@ -194,6 +267,7 @@ export default function App() {
     return (
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 60 }}>
         <StatusBar style="light" />
+        <AccountMenuButton onPress={() => setShowProfile(true)} />
 
         <View style={styles.header}>
           <Text style={styles.title}>APEXLOG <Text style={styles.subtitle}>TELEMETRIA</Text></Text>
@@ -256,6 +330,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
+      <AccountMenuButton onPress={() => setShowProfile(true)} />
 
       {/* Cabeçalho */}
       <View style={styles.header}>

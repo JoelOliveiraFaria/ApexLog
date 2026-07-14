@@ -29,9 +29,10 @@ namespace ApexLog.Infrastructure.Repositories
             return await _context.Motorcycles.FirstOrDefaultAsync(m => m.Id == id);
         }
 
-        public async Task<IReadOnlyList<Motorcycle>> GetAllAsync()
+        public async Task<IReadOnlyList<Motorcycle>> GetAllByUserIdAsync(Guid userId)
         {
             return await _context.Motorcycles
+                .Where(m => m.UserId == userId)
                 .OrderBy(m => m.Nickname)
                 .ToListAsync();
         }

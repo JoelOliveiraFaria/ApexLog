@@ -17,9 +17,9 @@ namespace ApexLog.Application.Services
             _tripRepository = tripRepository;
         }
 
-        public async Task<IReadOnlyList<TripSummaryDto>> GetAllTripsAsync()
+        public async Task<IReadOnlyList<TripSummaryDto>> GetAllTripsAsync(Guid userId)
         {
-            var trips = await _tripRepository.GetAllAsync();
+            var trips = await _tripRepository.GetAllByUserIdAsync(userId);
 
             return trips.Select(t => new TripSummaryDto
             {
@@ -34,11 +34,13 @@ namespace ApexLog.Application.Services
             }).ToList();
         }
 
-        public async Task<TripDetailDto?> GetTripByIdAsync(Guid id)
+        public async Task<TripDetailDto?> GetTripByIdAsync(Guid userId, Guid id)
         {
             var trip = await _tripRepository.GetByIdAsync(id);
 
-            if (trip == null) return null;
+            // 404 tanto para "não existe" como para "pertence a outro utilizador" — não revela
+            // a outros utilizadores autenticados que um determinado Id de viagem sequer existe.
+            if (trip == null || trip.Motorcycle?.UserId != userId) return null;
 
             return new TripDetailDto
             {

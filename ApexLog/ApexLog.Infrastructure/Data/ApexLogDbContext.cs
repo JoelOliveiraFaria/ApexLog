@@ -15,6 +15,7 @@ namespace ApexLog.Infrastructure.Data
         public DbSet<Trip> Trips => Set<Trip>();
         public DbSet<TelemetryPoint> TelemetryPoints => Set<TelemetryPoint>();
         public DbSet<Motorcycle> Motorcycles => Set<Motorcycle>();
+        public DbSet<User> Users => Set<User>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -28,6 +29,13 @@ namespace ApexLog.Infrastructure.Data
                 entity.Property(m => m.Model).IsRequired().HasMaxLength(50);
                 entity.Property(m => m.Year).IsRequired();
                 entity.Property(m => m.Nickname).HasMaxLength(50);
+                entity.Property(m => m.UserId).IsRequired();
+
+                // Impede a exclusão de um usuário se houver motas associadas
+                entity.HasOne(m => m.User)
+                      .WithMany()
+                      .HasForeignKey(m => m.UserId)
+                      .OnDelete(DeleteBehavior.Restrict); 
             });
 
             modelBuilder.Entity<Trip>(entity =>
@@ -60,6 +68,17 @@ namespace ApexLog.Infrastructure.Data
                 entity.Property(p => p.SpeedKmh).IsRequired();
                 entity.Property(p => p.ThrottlePosition).IsRequired();
                 entity.Property(p => p.EngineTempC).IsRequired();
+            });
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.ToTable("users");
+                entity.HasKey(u => u.Id);
+                entity.Property(u => u.Name).IsRequired().HasMaxLength(100);
+                entity.Property(u => u.Email).IsRequired().HasMaxLength(100);
+                entity.HasIndex(u => u.Email).IsUnique();
+                entity.Property(u => u.PasswordHash).IsRequired();
+                entity.Property(u => u.CreatedAt).IsRequired();
             });
         }
     }

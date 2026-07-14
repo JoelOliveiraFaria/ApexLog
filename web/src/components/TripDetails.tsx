@@ -4,6 +4,7 @@ import { ArrowLeft, RefreshCw, AlertTriangle, Gauge, Thermometer, Zap } from 'lu
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TelemetryStatTile } from './TelemetryStatTile';
 import { downsampleLTTB } from '../utils/downsample';
+import { apiFetch } from '../api/client';
 
 interface TripDetailsProps {
   tripId: string;
@@ -32,7 +33,7 @@ export function TripDetails({ tripId, onBack }: TripDetailsProps) {
   useEffect(() => {
     const fetchTripDetails = async () => {
       try {
-        const response = await fetch(`http://192.168.50.167:5084/api/trips/${tripId}`);
+        const response = await apiFetch(`/api/trips/${tripId}`);
         if (!response.ok) throw new Error('Erro ao carregar detalhes da viagem.');
         const data = await response.json();
         setTrip(data);

@@ -25,10 +25,11 @@ namespace ApexLog.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<IReadOnlyList<Trip>> GetAllAsync()
+        public async Task<IReadOnlyList<Trip>> GetAllByUserIdAsync(Guid userId)
         {
             return await _context.Trips
                 .Include(t => t.Motorcycle)
+                .Where(t => t.Motorcycle!.UserId == userId)
                 .OrderByDescending(t => t.StartTime)
                 .ToListAsync();
         }
@@ -44,6 +45,14 @@ namespace ApexLog.Infrastructure.Repositories
         public async Task<bool> ExistsAsync(Guid id)
         {
             return await _context.Trips.AnyAsync(t => t.Id == id);
+        }
+
+        public async Task<Guid?> GetOwningUserIdAsync(Guid tripId)
+        {
+            return await _context.Trips
+                .Where(t => t.Id == tripId)
+                .Select(t => (Guid?)t.Motorcycle!.UserId)
+                .FirstOrDefaultAsync();
         }
 
         /// <summary>

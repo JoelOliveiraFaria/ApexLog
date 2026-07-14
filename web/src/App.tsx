@@ -1,14 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Sidebar, type SidebarView } from './components/Sidebar';
 import { TripCard } from './components/TripCard';
 import { TripDetails } from './components/TripDetails';
 import { MotorcyclesPage } from './components/MotorcyclesPage';
+import { LoginPage } from './components/LoginPage';
+import { ProfilePage } from './components/ProfilePage';
 import { type Trip, type Motorcycle } from './types';
 import { RefreshCw, AlertTriangle, Route } from 'lucide-react';
+import { apiFetch, clearToken, getToken, setUnauthorizedHandler, type AuthResponse } from './api/client';
 
-const API_BASE_URL = 'http://192.168.50.167:5084';
+interface CurrentUser {
+  name: string;
+  email: string;
+}
 
 function App() {
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+
   const [view, setView] = useState<SidebarView>('dashboard');
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -17,11 +26,37 @@ function App() {
   const [motorcycles, setMotorcycles] = useState<Motorcycle[]>([]);
   const [motorcycleFilter, setMotorcycleFilter] = useState<string>('all');
 
-  const fetchTrips = async () => {
+  const handleLogout = useCallback(() => {
+    clearToken();
+    setCurrentUser(null);
+    setTrips([]);
+    setMotorcycles([]);
+    setView('dashboard');
+    setSelectedTripId(null);
+  }, []);
+
+  // Se já houver um token guardado (sessão anterior), tenta reidratar sem pedir login outra vez.
+  // Um 401 aqui (token expirado/inválido) força o logout através do handler registado abaixo.
+  useEffect(() => {
+    setUnauthorizedHandler(handleLogout);
+
+    const token = getToken();
+    if (!token) {
+      setIsAuthChecked(true);
+      return;
+    }
+
+    // Não há um endpoint "/me" — mostramos um nome genérico até o utilizador voltar a entrar;
+    // qualquer chamada à API valida o token na mesma.
+    setCurrentUser({ name: 'Utilizador', email: '' });
+    setIsAuthChecked(true);
+  }, [handleLogout]);
+
+  const fetchTrips = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/trips`);
+      const response = await apiFetch('/api/trips');
       if (!response.ok) throw new Error(`Erro na API: ${response.status}`);
       const data = await response.json();
       setTrips(data);
@@ -30,25 +65,38 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchMotorcycles = async () => {
+  const fetchMotorcycles = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/motorcycles`);
+      const response = await apiFetch('/api/motorcycles');
       if (!response.ok) throw new Error(`Erro na API: ${response.status}`);
       setMotorcycles(await response.json());
     } catch {
       // O filtro de motas é um extra do dashboard — uma falha aqui não deve impedir ver as viagens.
     }
-  };
+  }, []);
 
   useEffect(() => {
+    if (!currentUser) return;
     fetchTrips();
     fetchMotorcycles();
-  }, []);
+  }, [currentUser, fetchTrips, fetchMotorcycles]);
+
+  const handleAuthenticated = (auth: AuthResponse) => {
+    setCurrentUser({ name: auth.name, email: auth.email });
+  };
 
   const visibleTrips =
     motorcycleFilter === 'all' ? trips : trips.filter((trip) => trip.motorcycle.id === motorcycleFilter);
+
+  if (!isAuthChecked) {
+    return null;
+  }
+
+  if (!currentUser) {
+    return <LoginPage onAuthenticated={handleAuthenticated} />;
+  }
 
   return (
     <div className="flex bg-slate-950 min-h-screen text-slate-100 font-sans antialiased m-0 p-0">
@@ -58,10 +106,13 @@ function App() {
           setView(nextView);
           setSelectedTripId(null);
         }}
+        userName={currentUser.name}
       />
 
       <main className="flex-1 ml-64 p-8">
-        {view === 'motorcycles' ? (
+        {view === 'profile' ? (
+          <ProfilePage onNavigateToMotorcycles={() => setView('motorcycles')} onLogout={handleLogout} />
+        ) : view === 'motorcycles' ? (
           <MotorcyclesPage />
         ) : selectedTripId ? (
           <TripDetails tripId={selectedTripId} onBack={() => setSelectedTripId(null)} />

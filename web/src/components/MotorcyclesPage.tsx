@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { type Motorcycle } from '../types';
 import { RefreshCw, AlertTriangle, Bike, Pencil, Trash2, Plus, X } from 'lucide-react';
-
-const API_BASE_URL = 'http://192.168.50.167:5084';
+import { apiFetch } from '../api/client';
 
 interface MotorcycleFormValues {
   make: string;
@@ -29,7 +28,7 @@ export function MotorcyclesPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/motorcycles`);
+      const response = await apiFetch('/api/motorcycles');
       if (!response.ok) throw new Error(`Erro na API: ${response.status}`);
       const data = await response.json();
       setMotorcycles(data);
@@ -93,18 +92,16 @@ export function MotorcyclesPage() {
     setFormError(null);
     try {
       if (editingId) {
-        const response = await fetch(`${API_BASE_URL}/api/motorcycles/${editingId}`, {
+        const response = await apiFetch(`/api/motorcycles/${editingId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
         if (!response.ok) throw new Error(`Erro na API: ${response.status}`);
         const updated = await response.json();
         setMotorcycles((prev) => prev.map((m) => (m.id === editingId ? updated : m)));
       } else {
-        const response = await fetch(`${API_BASE_URL}/api/motorcycles`, {
+        const response = await apiFetch('/api/motorcycles', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
         if (!response.ok) throw new Error(`Erro na API: ${response.status}`);
@@ -124,7 +121,7 @@ export function MotorcyclesPage() {
 
     setDeletingId(id);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/motorcycles/${id}`, { method: 'DELETE' });
+      const response = await apiFetch(`/api/motorcycles/${id}`, { method: 'DELETE' });
       if (response.status === 409) {
         const body = await response.json().catch(() => null);
         alert(body?.error || 'Não é possível apagar uma mota com viagens associadas.');
