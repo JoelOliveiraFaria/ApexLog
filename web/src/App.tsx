@@ -8,6 +8,7 @@ import { ProfilePage } from './components/ProfilePage';
 import { type Trip, type Motorcycle } from './types';
 import { RefreshCw, AlertTriangle, Route } from 'lucide-react';
 import { apiFetch, clearToken, getToken, setUnauthorizedHandler, type AuthResponse } from './api/client';
+import { applyTheme, getCurrentTheme, type Theme } from './theme';
 
 interface CurrentUser {
   name: string;
@@ -17,6 +18,7 @@ interface CurrentUser {
 function App() {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [theme, setTheme] = useState<Theme>(getCurrentTheme);
 
   const [view, setView] = useState<SidebarView>('dashboard');
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -25,6 +27,14 @@ function App() {
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [motorcycles, setMotorcycles] = useState<Motorcycle[]>([]);
   const [motorcycleFilter, setMotorcycleFilter] = useState<string>('all');
+
+  const handleToggleTheme = useCallback(() => {
+    setTheme((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      return next;
+    });
+  }, []);
 
   const handleLogout = useCallback(() => {
     clearToken();
@@ -99,7 +109,7 @@ function App() {
   }
 
   return (
-    <div className="flex bg-slate-950 min-h-screen text-slate-100 font-sans antialiased m-0 p-0">
+    <div className="flex bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-slate-100 font-sans antialiased m-0 p-0">
       <Sidebar
         activeView={view}
         onNavigate={(nextView) => {
@@ -107,6 +117,8 @@ function App() {
           setSelectedTripId(null);
         }}
         userName={currentUser.name}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       <main className="flex-1 ml-64 p-8">
@@ -120,15 +132,15 @@ function App() {
           <>
             <header className="flex items-center justify-between mb-8">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-white">Dashboard</h1>
-                <p className="text-slate-400 mt-1">Bem-vindo ao teu centro de telemetria.</p>
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Dashboard</h1>
+                <p className="text-slate-600 dark:text-slate-400 mt-1">Bem-vindo ao teu centro de telemetria.</p>
               </div>
 
               <div className="flex items-center gap-3">
                 <select
                   value={motorcycleFilter}
                   onChange={(e) => setMotorcycleFilter(e.target.value)}
-                  className="bg-slate-900 border border-slate-800 hover:border-slate-700 text-sm font-semibold rounded-xl px-4 py-2 cursor-pointer focus:outline-none"
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-900 dark:text-slate-100 text-sm font-semibold rounded-xl px-4 py-2 cursor-pointer focus:outline-none"
                 >
                   <option value="all">Todas as motas</option>
                   {motorcycles.map((motorcycle) => (
@@ -141,7 +153,7 @@ function App() {
                 <button
                   onClick={fetchTrips}
                   disabled={loading}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-sm font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-100 text-sm font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-50"
                 >
                   <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                   <span>Atualizar</span>
@@ -152,16 +164,16 @@ function App() {
             {loading && (
               <div className="flex flex-col items-center justify-center py-20">
                 <RefreshCw size={40} className="text-emerald-400 animate-spin mb-4" />
-                <p className="text-slate-400 font-medium">A carregar viagens do servidor...</p>
+                <p className="text-slate-600 dark:text-slate-400 font-medium">A carregar viagens do servidor...</p>
               </div>
             )}
 
             {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 flex items-center gap-4 text-red-400 max-w-2xl mx-auto">
+              <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 flex items-center gap-4 text-red-600 dark:text-red-400 max-w-2xl mx-auto">
                 <AlertTriangle size={32} />
                 <div>
-                  <h3 className="font-bold text-white">Falha na Ligação</h3>
-                  <p className="text-sm text-red-300/80 mt-1">{error}</p>
+                  <h3 className="font-bold text-slate-900 dark:text-white">Falha na Ligação</h3>
+                  <p className="text-sm text-red-600/80 dark:text-red-300/80 mt-1">{error}</p>
                 </div>
               </div>
             )}
@@ -169,10 +181,10 @@ function App() {
             {!loading && !error && (
               <>
                 {visibleTrips.length === 0 ? (
-                  <div className="text-center py-20 bg-slate-900/40 border border-slate-900 rounded-2xl max-w-xl mx-auto">
-                    <Route size={48} className="text-slate-600 mx-auto mb-4" />
-                    <h3 className="text-lg font-bold text-white">Nenhuma viagem encontrada</h3>
-                    <p className="text-slate-400 text-sm mt-1">
+                  <div className="text-center py-20 bg-slate-100/60 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-900 rounded-2xl max-w-xl mx-auto">
+                    <Route size={48} className="text-slate-400 dark:text-slate-600 mx-auto mb-4" />
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Nenhuma viagem encontrada</h3>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
                       {motorcycleFilter === 'all'
                         ? 'Insere pontos via API para começar.'
                         : 'Esta mota ainda não tem viagens registadas.'}

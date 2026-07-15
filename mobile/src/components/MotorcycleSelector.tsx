@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { createMotorcycle, fetchMotorcycles } from '../api/apexLogApi';
 import type { Motorcycle } from '../types/motorcycle';
+import { useTheme, type ColorPalette } from '../theme';
 
 interface MotorcycleSelectorProps {
   selectedId: string | null;
@@ -11,6 +12,8 @@ interface MotorcycleSelectorProps {
 
 /** Lista as motas do backend, deixa escolher qual está a usar, e permite registar uma nova. */
 export function MotorcycleSelector({ selectedId, onSelect, disabled }: MotorcycleSelectorProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [motorcycles, setMotorcycles] = useState<Motorcycle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -133,21 +136,21 @@ export function MotorcycleSelector({ selectedId, onSelect, disabled }: Motorcycl
             value={make}
             onChangeText={setMake}
             placeholder="Marca (ex: CFMOTO)"
-            placeholderTextColor="#475569"
+            placeholderTextColor={colors.placeholder}
           />
           <TextInput
             style={styles.input}
             value={model}
             onChangeText={setModel}
             placeholder="Modelo (ex: 450SR)"
-            placeholderTextColor="#475569"
+            placeholderTextColor={colors.placeholder}
           />
           <TextInput
             style={styles.input}
             value={year}
             onChangeText={setYear}
             placeholder="Ano (ex: 2024)"
-            placeholderTextColor="#475569"
+            placeholderTextColor={colors.placeholder}
             keyboardType="numeric"
           />
           <TextInput
@@ -155,7 +158,7 @@ export function MotorcycleSelector({ selectedId, onSelect, disabled }: Motorcycl
             value={nickname}
             onChangeText={setNickname}
             placeholder="Alcunha (opcional)"
-            placeholderTextColor="#475569"
+            placeholderTextColor={colors.placeholder}
           />
 
           {saveError && <Text style={styles.errorText}>{saveError}</Text>}
@@ -185,131 +188,132 @@ export function MotorcycleSelector({ selectedId, onSelect, disabled }: Motorcycl
   );
 }
 
-const styles = StyleSheet.create({
-  stateBox: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  stateText: {
-    color: '#94a3b8',
-    fontSize: 13,
-    marginTop: 8,
-  },
-  errorText: {
-    color: '#f87171',
-    fontSize: 13,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  retryButton: {
-    marginTop: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  retryButtonText: {
-    color: '#e2e8f0',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  card: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  cardSelected: {
-    borderColor: '#10b981',
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
-  },
-  nickname: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  details: {
-    color: '#64748b',
-    fontSize: 12,
-    marginTop: 2,
-  },
-  checkmark: {
-    color: '#10b981',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  addButton: {
-    borderWidth: 1,
-    borderColor: '#334155',
-    borderStyle: 'dashed',
-    borderRadius: 16,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  addButtonText: {
-    color: '#94a3b8',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  addForm: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-  },
-  input: {
-    backgroundColor: '#0b1220',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderRadius: 12,
-    padding: 12,
-    color: '#ffffff',
-    marginBottom: 10,
-  },
-  addFormActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 10,
-    marginTop: 4,
-  },
-  cancelButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  cancelButtonText: {
-    color: '#94a3b8',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  saveButton: {
-    backgroundColor: '#10b981',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 90,
-  },
-  saveButtonText: {
-    color: '#ffffff',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    stateBox: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 16,
+      padding: 20,
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    stateText: {
+      color: colors.textSecondary,
+      fontSize: 13,
+      marginTop: 8,
+    },
+    errorText: {
+      color: colors.danger,
+      fontSize: 13,
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+    retryButton: {
+      marginTop: 12,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    retryButtonText: {
+      color: colors.textPrimary,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    card: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 16,
+      padding: 16,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    cardSelected: {
+      borderColor: colors.accent,
+      backgroundColor: colors.accentBg,
+    },
+    nickname: {
+      color: colors.textPrimary,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    details: {
+      color: colors.textMuted,
+      fontSize: 12,
+      marginTop: 2,
+    },
+    checkmark: {
+      color: colors.accent,
+      fontSize: 20,
+      fontWeight: 'bold',
+    },
+    addButton: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderStyle: 'dashed',
+      borderRadius: 16,
+      paddingVertical: 14,
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    addButtonText: {
+      color: colors.textSecondary,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    addForm: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+    },
+    input: {
+      backgroundColor: colors.input,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 12,
+      padding: 12,
+      color: colors.textPrimary,
+      marginBottom: 10,
+    },
+    addFormActions: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      gap: 10,
+      marginTop: 4,
+    },
+    cancelButton: {
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    cancelButtonText: {
+      color: colors.textSecondary,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    saveButton: {
+      backgroundColor: colors.accent,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: 90,
+    },
+    saveButtonText: {
+      color: '#ffffff',
+      fontSize: 13,
+      fontWeight: '700',
+    },
+  });

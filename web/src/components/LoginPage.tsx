@@ -31,23 +31,23 @@ export function LoginPage({ onAuthenticated }: LoginPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-3 justify-center mb-8">
-          <div className="bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20 text-emerald-400">
+          <div className="bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20 text-emerald-500 dark:text-emerald-400">
             <Bike size={24} />
           </div>
           <div>
-            <h1 className="font-bold text-white tracking-wide text-lg">APEXLOG</h1>
+            <h1 className="font-bold text-slate-900 dark:text-white tracking-wide text-lg">APEXLOG</h1>
             <p className="text-xs text-slate-500 font-medium">Telemetry System</p>
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
-          <h2 className="text-xl font-bold text-white mb-1">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">
             {mode === 'login' ? 'Entrar' : 'Criar conta'}
           </h2>
-          <p className="text-sm text-slate-400 mb-6">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
             {mode === 'login' ? 'Acede ao teu centro de telemetria.' : 'Regista-te para começar a gravar viagens.'}
           </p>
 
@@ -58,7 +58,7 @@ export function LoginPage({ onAuthenticated }: LoginPageProps) {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Nome"
                 required
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50"
+                className="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50"
               />
             )}
             <input
@@ -67,7 +67,7 @@ export function LoginPage({ onAuthenticated }: LoginPageProps) {
               placeholder="Email"
               type="email"
               required
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50"
+              className="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50"
             />
             <input
               value={password}
@@ -75,11 +75,11 @@ export function LoginPage({ onAuthenticated }: LoginPageProps) {
               placeholder="Password"
               type="password"
               required
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50"
+              className="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50"
             />
 
             {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-center gap-2 text-red-400">
+              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-center gap-2 text-red-600 dark:text-red-400">
                 <AlertTriangle size={16} className="shrink-0" />
                 <p className="text-xs">{error}</p>
               </div>
@@ -99,7 +99,7 @@ export function LoginPage({ onAuthenticated }: LoginPageProps) {
               setMode(mode === 'login' ? 'register' : 'login');
               setError(null);
             }}
-            className="w-full text-center text-sm text-slate-400 hover:text-white mt-5 cursor-pointer"
+            className="w-full text-center text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mt-5 cursor-pointer"
           >
             {mode === 'login' ? 'Ainda não tens conta? Regista-te' : 'Já tens conta? Entra'}
           </button>

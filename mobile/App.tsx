@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -21,6 +21,7 @@ import { AccountMenuButton } from './src/components/AccountMenuButton';
 import { ProfileScreen } from './src/components/ProfileScreen';
 import { setAuthToken, setUnauthorizedHandler, type AuthResponse } from './src/api/apexLogApi';
 import type { Motorcycle } from './src/types/motorcycle';
+import { ThemeProvider, useTheme, type ColorPalette } from './src/theme';
 
 // Criar a instância global do gestor de Bluetooth
 const manager = new BleManager();
@@ -28,6 +29,16 @@ const manager = new BleManager();
 const AUTH_TOKEN_STORAGE_KEY = 'apexlog_auth_token';
 
 export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+
+function AppContent() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
@@ -248,7 +259,7 @@ export default function App() {
   if (!selectedMotorcycle) {
     return (
       <View style={styles.container}>
-        <StatusBar style="light" />
+        <StatusBar style={colors.statusBarStyle} />
 
         <View style={styles.header}>
           <Text style={styles.title}>APEXLOG <Text style={styles.subtitle}>MOBILE</Text></Text>
@@ -266,7 +277,7 @@ export default function App() {
   if (connectedDevice && elmClient) {
     return (
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 60 }}>
-        <StatusBar style="light" />
+        <StatusBar style={colors.statusBarStyle} />
         <AccountMenuButton onPress={() => setShowProfile(true)} />
 
         <View style={styles.header}>
@@ -329,7 +340,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style={colors.statusBarStyle} />
       <AccountMenuButton onPress={() => setShowProfile(true)} />
 
       {/* Cabeçalho */}
@@ -393,178 +404,179 @@ export default function App() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#020617', // Slate 950 (Igual ao Dashboard Web!)
-    paddingTop: 60,
-    paddingHorizontal: 24,
-  },
-  header: {
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    letterSpacing: 1,
-  },
-  subtitle: {
-    color: '#10b981', // Verde esmeralda
-  },
-  description: {
-    color: '#94a3b8',
-    fontSize: 14,
-    marginTop: 4,
-  },
-  statusBox: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 24,
-  },
-  statusLabel: {
-    color: '#64748b',
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  statusValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 4,
-    color: '#f97316',
-  },
-  textGreen: { color: '#10b981' },
-  textOrange: { color: '#f97316' },
-  errorBox: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 24,
-  },
-  errorText: {
-    color: '#f87171',
-    fontSize: 13,
-  },
-  gaugeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  gaugeCard: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
-    width: '48%',
-    marginBottom: 12,
-  },
-  gaugeLabel: {
-    color: '#64748b',
-    fontSize: 11,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    marginBottom: 6,
-  },
-  gaugeValue: {
-    color: '#ffffff',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  gaugeUnit: {
-    fontSize: 12,
-    color: '#94a3b8',
-    fontWeight: '500',
-  },
-  input: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
-    color: '#ffffff',
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: '#10b981',
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-    marginBottom: 24,
-    shadowColor: '#10b981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
-  buttonStop: {
-    backgroundColor: '#ef4444',
-    shadowColor: '#ef4444',
-  },
-  buttonDisabled: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  linkButton: {
-    alignItems: 'center',
-    paddingBottom: 24,
-  },
-  linkButtonText: {
-    color: '#64748b',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  sectionTitle: {
-    color: '#94a3b8',
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 12,
-    textTransform: 'uppercase',
-  },
-  deviceCard: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  deviceName: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  deviceMac: {
-    color: '#64748b',
-    fontSize: 12,
-    marginTop: 2,
-  },
-  connectLink: {
-    color: '#10b981',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  emptyText: {
-    color: '#475569',
-    textAlign: 'center',
-    marginTop: 40,
-    fontSize: 14,
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingTop: 60,
+      paddingHorizontal: 24,
+    },
+    header: {
+      marginBottom: 24,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: colors.textPrimary,
+      letterSpacing: 1,
+    },
+    subtitle: {
+      color: colors.accent,
+    },
+    description: {
+      color: colors.textSecondary,
+      fontSize: 14,
+      marginTop: 4,
+    },
+    statusBox: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 24,
+    },
+    statusLabel: {
+      color: colors.textMuted,
+      fontSize: 12,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+    },
+    statusValue: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginTop: 4,
+      color: colors.warning,
+    },
+    textGreen: { color: colors.accent },
+    textOrange: { color: colors.warning },
+    errorBox: {
+      backgroundColor: colors.dangerBg,
+      borderWidth: 1,
+      borderColor: colors.dangerBorder,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 24,
+    },
+    errorText: {
+      color: colors.danger,
+      fontSize: 13,
+    },
+    gaugeGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      marginBottom: 24,
+    },
+    gaugeCard: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 16,
+      padding: 16,
+      width: '48%',
+      marginBottom: 12,
+    },
+    gaugeLabel: {
+      color: colors.textMuted,
+      fontSize: 11,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+      marginBottom: 6,
+    },
+    gaugeValue: {
+      color: colors.textPrimary,
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+    gaugeUnit: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      fontWeight: '500',
+    },
+    input: {
+      backgroundColor: colors.input,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 16,
+      padding: 16,
+      color: colors.textPrimary,
+      marginBottom: 12,
+    },
+    button: {
+      backgroundColor: colors.accent,
+      borderRadius: 16,
+      paddingVertical: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+      marginBottom: 24,
+      shadowColor: colors.accent,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+    },
+    buttonStop: {
+      backgroundColor: '#ef4444',
+      shadowColor: '#ef4444',
+    },
+    buttonDisabled: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    buttonText: {
+      color: '#ffffff',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    linkButton: {
+      alignItems: 'center',
+      paddingBottom: 24,
+    },
+    linkButtonText: {
+      color: colors.textMuted,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    sectionTitle: {
+      color: colors.textSecondary,
+      fontSize: 14,
+      fontWeight: '600',
+      marginBottom: 12,
+      textTransform: 'uppercase',
+    },
+    deviceCard: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 16,
+      padding: 16,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    deviceName: {
+      color: colors.textPrimary,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    deviceMac: {
+      color: colors.textMuted,
+      fontSize: 12,
+      marginTop: 2,
+    },
+    connectLink: {
+      color: colors.accent,
+      fontWeight: 'bold',
+      fontSize: 14,
+    },
+    emptyText: {
+      color: colors.placeholder,
+      textAlign: 'center',
+      marginTop: 40,
+      fontSize: 14,
+    },
+  });

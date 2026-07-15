@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { login, register, type AuthResponse } from '../api/apexLogApi';
+import { useTheme, type ColorPalette } from '../theme';
 
 interface AuthScreenProps {
   onAuthenticated: (auth: AuthResponse) => void;
@@ -8,6 +9,8 @@ interface AuthScreenProps {
 
 /** Ecrã de login/registo — primeiro passo obrigatório antes de qualquer outra funcionalidade da app. */
 export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -43,7 +46,7 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
           value={name}
           onChangeText={setName}
           placeholder="Nome"
-          placeholderTextColor="#475569"
+          placeholderTextColor={colors.placeholder}
         />
       )}
       <TextInput
@@ -51,7 +54,7 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
         value={email}
         onChangeText={setEmail}
         placeholder="Email"
-        placeholderTextColor="#475569"
+        placeholderTextColor={colors.placeholder}
         autoCapitalize="none"
         keyboardType="email-address"
       />
@@ -60,7 +63,7 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
         value={password}
         onChangeText={setPassword}
         placeholder="Password"
-        placeholderTextColor="#475569"
+        placeholderTextColor={colors.placeholder}
         secureTextEntry
       />
 
@@ -93,76 +96,77 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#020617',
-    paddingTop: 100,
-    paddingHorizontal: 24,
-    justifyContent: 'flex-start',
-  },
-  header: {
-    marginBottom: 32,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    letterSpacing: 1,
-  },
-  subtitle: {
-    color: '#10b981',
-  },
-  description: {
-    color: '#94a3b8',
-    fontSize: 14,
-    marginTop: 8,
-  },
-  input: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
-    color: '#ffffff',
-    marginBottom: 12,
-  },
-  errorBox: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-  },
-  errorText: {
-    color: '#f87171',
-    fontSize: 13,
-  },
-  button: {
-    backgroundColor: '#10b981',
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-    shadowColor: '#10b981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  linkButton: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  linkButtonText: {
-    color: '#64748b',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingTop: 100,
+      paddingHorizontal: 24,
+      justifyContent: 'flex-start',
+    },
+    header: {
+      marginBottom: 32,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: colors.textPrimary,
+      letterSpacing: 1,
+    },
+    subtitle: {
+      color: colors.accent,
+    },
+    description: {
+      color: colors.textSecondary,
+      fontSize: 14,
+      marginTop: 8,
+    },
+    input: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 16,
+      padding: 16,
+      color: colors.textPrimary,
+      marginBottom: 12,
+    },
+    errorBox: {
+      backgroundColor: colors.dangerBg,
+      borderWidth: 1,
+      borderColor: colors.dangerBorder,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 16,
+    },
+    errorText: {
+      color: colors.danger,
+      fontSize: 13,
+    },
+    button: {
+      backgroundColor: colors.accent,
+      borderRadius: 16,
+      paddingVertical: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+      shadowColor: colors.accent,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+    },
+    buttonText: {
+      color: '#ffffff',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    linkButton: {
+      alignItems: 'center',
+      marginTop: 20,
+    },
+    linkButtonText: {
+      color: colors.textMuted,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+  });

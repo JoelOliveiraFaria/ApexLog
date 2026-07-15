@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
 import { getMyProfile, changeMyPassword, type UserProfile } from '../api/apexLogApi';
+import { useTheme, type ColorPalette } from '../theme';
 
 interface ProfileScreenProps {
   onBack: () => void;
@@ -9,6 +10,8 @@ interface ProfileScreenProps {
 }
 
 export function ProfileScreen({ onBack, onNavigateToMotorcycles, onLogout }: ProfileScreenProps) {
+  const { colors, isDark, toggleTheme } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -83,13 +86,18 @@ export function ProfileScreen({ onBack, onNavigateToMotorcycles, onLogout }: Pro
             <Text style={styles.statusValue}>{profile.email}</Text>
           </View>
 
+          <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
+            <Text style={styles.themeToggleText}>{isDark ? 'Tema escuro' : 'Tema claro'}</Text>
+            <Text style={styles.themeToggleAction}>Mudar</Text>
+          </TouchableOpacity>
+
           <Text style={styles.sectionTitle}>Alterar password</Text>
           <TextInput
             style={styles.input}
             value={currentPassword}
             onChangeText={setCurrentPassword}
             placeholder="Password atual"
-            placeholderTextColor="#475569"
+            placeholderTextColor={colors.placeholder}
             secureTextEntry
           />
           <TextInput
@@ -97,7 +105,7 @@ export function ProfileScreen({ onBack, onNavigateToMotorcycles, onLogout }: Pro
             value={newPassword}
             onChangeText={setNewPassword}
             placeholder="Nova password"
-            placeholderTextColor="#475569"
+            placeholderTextColor={colors.placeholder}
             secureTextEntry
           />
           <TextInput
@@ -105,7 +113,7 @@ export function ProfileScreen({ onBack, onNavigateToMotorcycles, onLogout }: Pro
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             placeholder="Confirmar nova password"
-            placeholderTextColor="#475569"
+            placeholderTextColor={colors.placeholder}
             secureTextEntry
           />
 
@@ -145,146 +153,168 @@ export function ProfileScreen({ onBack, onNavigateToMotorcycles, onLogout }: Pro
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#020617',
-    paddingTop: 60,
-    paddingHorizontal: 24,
-  },
-  header: {
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    letterSpacing: 1,
-  },
-  subtitle: {
-    color: '#10b981',
-  },
-  description: {
-    color: '#94a3b8',
-    fontSize: 14,
-    marginTop: 4,
-  },
-  statusBox: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-  },
-  statusLabel: {
-    color: '#64748b',
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  statusValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 4,
-    color: '#ffffff',
-  },
-  sectionTitle: {
-    color: '#94a3b8',
-    fontSize: 14,
-    fontWeight: '600',
-    marginTop: 20,
-    marginBottom: 12,
-    textTransform: 'uppercase',
-  },
-  input: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
-    color: '#ffffff',
-    marginBottom: 12,
-  },
-  errorBox: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-  },
-  errorText: {
-    color: '#f87171',
-    fontSize: 13,
-  },
-  successBox: {
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.2)',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-  },
-  successText: {
-    color: '#34d399',
-    fontSize: 13,
-  },
-  button: {
-    backgroundColor: '#10b981',
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-    marginBottom: 24,
-    shadowColor: '#10b981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  secondaryButton: {
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  secondaryButtonText: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  logoutButton: {
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderRadius: 16,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  logoutButtonText: {
-    color: '#f87171',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  linkButton: {
-    alignItems: 'center',
-    paddingBottom: 24,
-  },
-  linkButtonText: {
-    color: '#64748b',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingTop: 60,
+      paddingHorizontal: 24,
+    },
+    header: {
+      marginBottom: 24,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      color: colors.textPrimary,
+      letterSpacing: 1,
+    },
+    subtitle: {
+      color: colors.accent,
+    },
+    description: {
+      color: colors.textSecondary,
+      fontSize: 14,
+      marginTop: 4,
+    },
+    statusBox: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+    },
+    statusLabel: {
+      color: colors.textMuted,
+      fontSize: 12,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+    },
+    statusValue: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginTop: 4,
+      color: colors.textPrimary,
+    },
+    themeToggle: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    themeToggleText: {
+      color: colors.textPrimary,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+    themeToggleAction: {
+      color: colors.accent,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    sectionTitle: {
+      color: colors.textSecondary,
+      fontSize: 14,
+      fontWeight: '600',
+      marginTop: 20,
+      marginBottom: 12,
+      textTransform: 'uppercase',
+    },
+    input: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 16,
+      padding: 16,
+      color: colors.textPrimary,
+      marginBottom: 12,
+    },
+    errorBox: {
+      backgroundColor: colors.dangerBg,
+      borderWidth: 1,
+      borderColor: colors.dangerBorder,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 16,
+    },
+    errorText: {
+      color: colors.danger,
+      fontSize: 13,
+    },
+    successBox: {
+      backgroundColor: colors.successBg,
+      borderWidth: 1,
+      borderColor: colors.successBorder,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 16,
+    },
+    successText: {
+      color: colors.success,
+      fontSize: 13,
+    },
+    button: {
+      backgroundColor: colors.accent,
+      borderRadius: 16,
+      paddingVertical: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 8,
+      marginBottom: 24,
+      shadowColor: colors.accent,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+    },
+    buttonText: {
+      color: '#ffffff',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    secondaryButton: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 16,
+      paddingVertical: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 12,
+    },
+    secondaryButtonText: {
+      color: colors.textPrimary,
+      fontSize: 15,
+      fontWeight: '600',
+    },
+    logoutButton: {
+      borderWidth: 1,
+      borderColor: colors.dangerBorder,
+      backgroundColor: colors.dangerBg,
+      borderRadius: 16,
+      paddingVertical: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 12,
+    },
+    logoutButtonText: {
+      color: colors.danger,
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    linkButton: {
+      alignItems: 'center',
+      paddingBottom: 24,
+    },
+    linkButtonText: {
+      color: colors.textMuted,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+  });

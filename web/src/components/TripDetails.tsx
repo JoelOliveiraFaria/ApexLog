@@ -5,6 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { TelemetryStatTile } from './TelemetryStatTile';
 import { downsampleLTTB } from '../utils/downsample';
 import { apiFetch } from '../api/client';
+import { useIsDarkMode } from '../theme';
 
 interface TripDetailsProps {
   tripId: string;
@@ -29,6 +30,16 @@ export function TripDetails({ tripId, onBack }: TripDetailsProps) {
   const [error, setError] = useState<string | null>(null);
   const [perfHover, setPerfHover] = useState<ChartRow | null>(null);
   const [engineHover, setEngineHover] = useState<ChartRow | null>(null);
+  const isDark = useIsDarkMode();
+
+  // Recharts não aceita classes Tailwind — as cores dos eixos/grelha têm de reagir ao tema em JS.
+  const chartColors = {
+    grid: isDark ? '#1e293b' : '#e2e8f0',
+    axis: isDark ? '#64748b' : '#475569',
+    tooltipBg: isDark ? '#0f172a' : '#ffffff',
+    tooltipBorder: isDark ? '#334155' : '#e2e8f0',
+    tooltipText: isDark ? '#ffffff' : '#0f172a',
+  };
 
   useEffect(() => {
     const fetchTripDetails = async () => {
@@ -71,18 +82,18 @@ export function TripDetails({ tripId, onBack }: TripDetailsProps) {
     return (
       <div className="flex flex-col items-center justify-center py-40">
         <RefreshCw size={40} className="text-emerald-400 animate-spin mb-4" />
-        <p className="text-slate-400">A processar gráficos de telemetria...</p>
+        <p className="text-slate-600 dark:text-slate-400">A processar gráficos de telemetria...</p>
       </div>
     );
   }
 
   if (error || !trip) {
     return (
-      <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 flex items-center gap-4 text-red-400 max-w-2xl mx-auto mt-10">
+      <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 flex items-center gap-4 text-red-600 dark:text-red-400 max-w-2xl mx-auto mt-10">
         <AlertTriangle size={32} />
         <div>
-          <h3 className="font-bold text-white">Erro nos Gráficos</h3>
-          <p className="text-sm text-red-300/80 mt-1">{error || 'Dados indisponíveis.'}</p>
+          <h3 className="font-bold text-slate-900 dark:text-white">Erro nos Gráficos</h3>
+          <p className="text-sm text-red-600/80 dark:text-red-300/80 mt-1">{error || 'Dados indisponíveis.'}</p>
         </div>
       </div>
     );
@@ -93,41 +104,41 @@ export function TripDetails({ tripId, onBack }: TripDetailsProps) {
       {/* Botão Voltar */}
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-slate-400 hover:text-white font-medium transition-colors cursor-pointer group"
+        className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium transition-colors cursor-pointer group"
       >
         <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
         <span>Voltar ao Dashboard</span>
       </button>
 
       {/* Resumo da Viagem Focada */}
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 grid grid-cols-1 md:grid-cols-3 gap-6 shadow-2xl">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 grid grid-cols-1 md:grid-cols-3 gap-6 shadow-2xl">
         <div className="flex items-center gap-4">
-          <div className="bg-emerald-500/10 p-3 rounded-2xl border border-emerald-500/20 text-emerald-400">
+          <div className="bg-emerald-500/10 p-3 rounded-2xl border border-emerald-500/20 text-emerald-500 dark:text-emerald-400">
             <Gauge size={24} />
           </div>
           <div>
             <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Velocidade Média</p>
-            <p className="text-2xl font-bold text-white">{trip.avgSpeedKmh} <span className="text-sm font-medium text-slate-400">km/h</span></p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white">{trip.avgSpeedKmh} <span className="text-sm font-medium text-slate-600 dark:text-slate-400">km/h</span></p>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="bg-orange-500/10 p-3 rounded-2xl border border-orange-500/20 text-orange-400">
+          <div className="bg-orange-500/10 p-3 rounded-2xl border border-orange-500/20 text-orange-500 dark:text-orange-400">
             <Zap size={24} />
           </div>
           <div>
             <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Pico de Rotações</p>
-            <p className="text-2xl font-bold text-white">{trip.maxRpm} <span className="text-sm font-medium text-slate-400">rpm</span></p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white">{trip.maxRpm} <span className="text-sm font-medium text-slate-600 dark:text-slate-400">rpm</span></p>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="bg-sky-500/10 p-3 rounded-2xl border border-sky-500/20 text-sky-400">
+          <div className="bg-sky-500/10 p-3 rounded-2xl border border-sky-500/20 text-sky-500 dark:text-sky-400">
             <Thermometer size={24} />
           </div>
           <div>
             <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Moto Analisada</p>
-            <p className="text-2xl font-bold text-white">
+            <p className="text-2xl font-bold text-slate-900 dark:text-white">
               {trip.motorcycle.nickname || `${trip.motorcycle.make} ${trip.motorcycle.model}`}
             </p>
             <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -138,15 +149,15 @@ export function TripDetails({ tripId, onBack }: TripDetailsProps) {
       </div>
 
       {chartData.length === 0 ? (
-        <div className="text-center py-20 bg-slate-900/50 border border-slate-800 rounded-2xl">
-          <p className="text-slate-400">Esta viagem não registou pontos de telemetria contínuos.</p>
+        <div className="text-center py-20 bg-slate-100/60 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl">
+          <p className="text-slate-600 dark:text-slate-400">Esta viagem não registou pontos de telemetria contínuos.</p>
         </div>
       ) : (
         <div className="space-y-8">
           {/* Gráfico 1: Performance Dinâmica */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-              <h3 className="text-lg font-bold text-white">Gráfico de Performance (Velocidade & RPM)</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Gráfico de Performance (Velocidade & RPM)</h3>
               <div className="flex gap-3">
                 <TelemetryStatTile label="Velocidade" value={perfDisplay?.speedKmh ?? '--'} unit="km/h" dotClassName="bg-emerald-400" />
                 <TelemetryStatTile label="Rotações" value={perfDisplay?.rpm ?? '--'} unit="rpm" dotClassName="bg-orange-400" />
@@ -164,14 +175,14 @@ export function TripDetails({ tripId, onBack }: TripDetailsProps) {
                   }}
                   onMouseLeave={() => setPerfHover(null)}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="timeDisplay" stroke="#64748b" fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                  <XAxis dataKey="timeDisplay" stroke={chartColors.axis} fontSize={12} />
 
                   {/* Dois eixos Y independentes para não esmagar as curvas */}
                   <YAxis yAxisId="left" stroke="#10b981" fontSize={12} label={{ value: 'km/h', angle: -90, position: 'insideLeft', fill: '#10b981' }} />
                   <YAxis yAxisId="right" orientation="right" stroke="#f97316" fontSize={12} label={{ value: 'RPM', angle: 90, position: 'insideRight', fill: '#f97316' }} />
 
-                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }} />
+                  <Tooltip contentStyle={{ backgroundColor: chartColors.tooltipBg, borderColor: chartColors.tooltipBorder, borderRadius: '12px', color: chartColors.tooltipText }} />
                   <Legend />
 
                   <Line yAxisId="left" type="monotone" dataKey="speedKmh" stroke="#10b981" strokeWidth={3} name="Velocidade" dot={false} activeDot={{ r: 6 }} />
@@ -182,9 +193,9 @@ export function TripDetails({ tripId, onBack }: TripDetailsProps) {
           </div>
 
           {/* Gráfico 2: Saúde do Motor & Aceleração */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-              <h3 className="text-lg font-bold text-white">Diagnóstico do Motor (Temperatura & Acelerador)</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Diagnóstico do Motor (Temperatura & Acelerador)</h3>
               <div className="flex gap-3">
                 <TelemetryStatTile label="Temp. motor" value={engineDisplay?.engineTempC ?? '--'} unit="ºC" dotClassName="bg-red-400" />
                 <TelemetryStatTile label="Acelerador" value={engineDisplay?.throttlePosition ?? '--'} unit="%" dotClassName="bg-purple-400" />
@@ -202,13 +213,13 @@ export function TripDetails({ tripId, onBack }: TripDetailsProps) {
                   }}
                   onMouseLeave={() => setEngineHover(null)}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="timeDisplay" stroke="#64748b" fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                  <XAxis dataKey="timeDisplay" stroke={chartColors.axis} fontSize={12} />
 
                   <YAxis yAxisId="left" stroke="#ef4444" fontSize={12} label={{ value: 'Temp ºC', angle: -90, position: 'insideLeft', fill: '#ef4444' }} />
                   <YAxis yAxisId="right" orientation="right" stroke="#a855f7" fontSize={12} label={{ value: 'Acelerador %', angle: 90, position: 'insideRight', fill: '#a855f7' }} />
 
-                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }} />
+                  <Tooltip contentStyle={{ backgroundColor: chartColors.tooltipBg, borderColor: chartColors.tooltipBorder, borderRadius: '12px', color: chartColors.tooltipText }} />
                   <Legend />
 
                   <Line yAxisId="left" type="monotone" dataKey="engineTempC" stroke="#ef4444" strokeWidth={2.5} name="Temperatura do Motor" dot={false} />

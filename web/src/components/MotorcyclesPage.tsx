@@ -140,15 +140,15 @@ export function MotorcyclesPage() {
     <>
       <header className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Motas</h1>
-          <p className="text-slate-400 mt-1">Gere as motas associadas às tuas viagens.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Motas</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">Gere as motas associadas às tuas viagens.</p>
         </div>
 
         <div className="flex items-center gap-3">
           <button
             onClick={fetchMotorcycles}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-800 hover:border-slate-700 text-sm font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-100 text-sm font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-50"
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
             <span>Atualizar</span>
@@ -166,16 +166,16 @@ export function MotorcyclesPage() {
       {loading && (
         <div className="flex flex-col items-center justify-center py-20">
           <RefreshCw size={40} className="text-emerald-400 animate-spin mb-4" />
-          <p className="text-slate-400 font-medium">A carregar motas do servidor...</p>
+          <p className="text-slate-600 dark:text-slate-400 font-medium">A carregar motas do servidor...</p>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 flex items-center gap-4 text-red-400 max-w-2xl mx-auto">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 flex items-center gap-4 text-red-600 dark:text-red-400 max-w-2xl mx-auto">
           <AlertTriangle size={32} />
           <div>
-            <h3 className="font-bold text-white">Falha na Ligação</h3>
-            <p className="text-sm text-red-300/80 mt-1">{error}</p>
+            <h3 className="font-bold text-slate-900 dark:text-white">Falha na Ligação</h3>
+            <p className="text-sm text-red-600/80 dark:text-red-300/80 mt-1">{error}</p>
           </div>
         </div>
       )}
@@ -183,10 +183,10 @@ export function MotorcyclesPage() {
       {!loading && !error && (
         <div className="space-y-6">
           {(isAdding || editingId) && (
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl max-w-xl">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl max-w-xl">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-white">{editingId ? 'Editar mota' : 'Nova mota'}</h3>
-                <button onClick={cancelForm} className="text-slate-500 hover:text-white cursor-pointer">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingId ? 'Editar mota' : 'Nova mota'}</h3>
+                <button onClick={cancelForm} className="text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer">
                   <X size={20} />
                 </button>
               </div>
@@ -196,36 +196,36 @@ export function MotorcyclesPage() {
                   value={form.make}
                   onChange={(e) => setForm((f) => ({ ...f, make: e.target.value }))}
                   placeholder="Marca (ex: CFMOTO)"
-                  className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50"
+                  className="bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50"
                 />
                 <input
                   value={form.model}
                   onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))}
                   placeholder="Modelo (ex: 450SR)"
-                  className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50"
+                  className="bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50"
                 />
                 <input
                   value={form.year}
                   onChange={(e) => setForm((f) => ({ ...f, year: e.target.value }))}
                   placeholder="Ano (ex: 2024)"
                   inputMode="numeric"
-                  className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50"
+                  className="bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50"
                 />
                 <input
                   value={form.nickname}
                   onChange={(e) => setForm((f) => ({ ...f, nickname: e.target.value }))}
                   placeholder="Alcunha (opcional)"
-                  className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50"
+                  className="bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500/50"
                 />
               </div>
 
-              {formError && <p className="text-red-400 text-sm mt-3">{formError}</p>}
+              {formError && <p className="text-red-600 dark:text-red-400 text-sm mt-3">{formError}</p>}
 
               <div className="flex justify-end gap-3 mt-5">
                 <button
                   onClick={cancelForm}
                   disabled={isSaving}
-                  className="px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
+                  className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -241,29 +241,29 @@ export function MotorcyclesPage() {
           )}
 
           {motorcycles.length === 0 && !isAdding ? (
-            <div className="text-center py-20 bg-slate-900/40 border border-slate-900 rounded-2xl max-w-xl mx-auto">
-              <Bike size={48} className="text-slate-600 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-white">Nenhuma mota registada</h3>
-              <p className="text-slate-400 text-sm mt-1">Adiciona a tua primeira mota para começar a gravar viagens.</p>
+            <div className="text-center py-20 bg-slate-100/60 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-900 rounded-2xl max-w-xl mx-auto">
+              <Bike size={48} className="text-slate-400 dark:text-slate-600 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Nenhuma mota registada</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">Adiciona a tua primeira mota para começar a gravar viagens.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {motorcycles.map((motorcycle) => (
                 <div
                   key={motorcycle.id}
-                  className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl"
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl"
                 >
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
-                    <div className="flex items-center gap-2 text-emerald-400">
+                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 mb-4">
+                    <div className="flex items-center gap-2 text-emerald-500 dark:text-emerald-400">
                       <Bike size={18} />
-                      <span className="font-bold text-white">
+                      <span className="font-bold text-slate-900 dark:text-white">
                         {motorcycle.nickname || `${motorcycle.make} ${motorcycle.model}`}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => startEditing(motorcycle)}
-                        className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition-all cursor-pointer"
+                        className="p-2 text-slate-500 dark:text-slate-400 hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all cursor-pointer"
                         aria-label="Editar"
                       >
                         <Pencil size={16} />
@@ -271,14 +271,14 @@ export function MotorcyclesPage() {
                       <button
                         onClick={() => handleDelete(motorcycle.id)}
                         disabled={deletingId === motorcycle.id}
-                        className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-all cursor-pointer disabled:opacity-50"
+                        className="p-2 text-slate-500 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all cursor-pointer disabled:opacity-50"
                         aria-label="Apagar"
                       >
                         <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
-                  <p className="text-sm text-slate-400">{motorcycle.make} {motorcycle.model}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">{motorcycle.make} {motorcycle.model}</p>
                   <p className="text-xs text-slate-500 mt-1">Ano {motorcycle.year}</p>
                 </div>
               ))}
